@@ -1,0 +1,115 @@
+DROP DATABASE IF EXISTS seniordesignproject;  
+CREATE DATABASE seniordesignproject;  
+USE seniordesignproject;  
+
+CREATE TABLE Student (  
+StuNetID char(9) NOT NULL,   
+StuUTDID char(10) UNIQUE NOT NULL,   
+StuName varchar(30) NOT NULL,   
+StuPassword varchar(20) NOT NULL,  
+PRIMARY KEY (StuNetID)  
+);  
+
+CREATE TABLE Professor (   
+ProfNetID char(9) NOT NULL,  
+ProfUTDID char(10) UNIQUE NOT NULL,  
+ProfName varchar(30) NOT NULL,  
+ProfPassword varchar(20) NOT NULL,  
+PRIMARY KEY (ProfNetID)  
+);  
+
+CREATE TABLE Section (  
+SecCode char(5) NOT NULL,  
+SecName varchar(12) UNIQUE NOT NULL,  
+PRIMARY KEY (SecCode)  
+); 
+
+CREATE TABLE Teaches (  
+ProfNetID char(9) NOT NULL,  
+SecCode char(5) NOT NULL,   
+PRIMARY KEY (ProfNetID, SecCode),  
+FOREIGN KEY (ProfNetID) REFERENCES Professor(ProfNetID),  
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode) 
+);  
+
+CREATE TABLE Attends (  
+StuNetID char(9) NOT NULL,  
+SecCode char(5) NOT NULL,  
+PRIMARY KEY (StuNetID, SecCode),   
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),  
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  
+);  
+
+CREATE TABLE Team (  
+TeamNum char(3) NOT NULL,  
+SecCode char(5) NOT NULL,  
+PRIMARY KEY (TeamNum, SecCode),  
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  
+);  
+
+CREATE TABLE MemberOf (  
+TeamNum char(3) NOT NULL,  
+SecCode char(5) NOT NULL, 
+StuNetID char(9) NOT NULL,  
+PRIMARY KEY (TeamNum, StuNetID, SecCode),  
+FOREIGN KEY (TeamNum, SecCode) REFERENCES Team(TeamNum, SecCode),  
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) 
+);  
+
+CREATE TABLE Timeslot (   
+TimeslotID int NOT NULL,  
+TSDate date NOT NULL,   
+TSDescription varchar(200) NOT NULL,  
+TSDuration varchar(5) NOT NULL,  
+StuNetID char(9) NOT NULL,  
+PRIMARY KEY (TimeSlotID, StuNetID),  
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID)  
+);  
+
+CREATE TABLE PeerReview (   
+ReviewID int NOT NULL AUTO_INCREMENT,   
+ReviewType char(7) NOT NULL,  
+ReviewerID char(9) NOT NULL,  
+PRIMARY KEY (ReviewID),   
+FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID)  
+);  
+
+CREATE TABLE Reviewed (   
+StuNetID char(9) NOT NULL,  
+ReviewID int NOT NULL,  
+PRIMARY KEY (StuNetID, ReviewID),  
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),  
+FOREIGN KEY (ReviewID) REFERENCES PeerReview(ReviewID)  
+);  
+
+CREATE TABLE Criteria (   
+CriteriaID int NOT NULL AUTO_INCREMENT,  
+CriteriaName varchar(35) NOT NULL,  
+CriteriaDescription varchar(300),  
+PRIMARY KEY (CriteriaID)   
+);  
+
+CREATE TABLE Scored (  
+ReviewID int NOT NULL,   
+CriteriaID int NOT NULL,   
+Score int NOT NULL,  
+PRIMARY KEY (ReviewID, CriteriaID),  
+FOREIGN KEY (ReviewID) REFERENCES PeerReview(ReviewID),  
+FOREIGN KEY (CriteriaID) REFERENCES Criteria(CriteriaID)  
+); 
+
+DELIMITER //
+CREATE TRIGGER before_insert_timeslot
+BEFORE INSERT ON Timeslot
+FOR EACH ROW
+BEGIN
+    DECLARE maxID INT;
+    -- Get the maximum TimeslotID for the specific StuNetID
+    SELECT COALESCE(MAX(TimeslotID), 0) INTO maxID
+    FROM Timeslot
+    WHERE StuNetID = NEW.StuNetID;
+
+    -- Set the new TimeslotID
+    SET NEW.TimeslotID = maxID + 1;
+END; //
+DELIMITER ;
