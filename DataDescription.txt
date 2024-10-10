@@ -1,0 +1,39 @@
+Student: 
+There are 15 students, their password is currently set as their UTDID.
+
+Professor: 
+There are 5 professors, their password is currently their UTDID.
+
+Section: 
+There are 5 sections, including the Senior Design Class (SecCode: 84775 SecName: CS 4485.0W1)
+
+Teaches: 
+There are 3 professors who teach one class, and one professor who teaches two classes (jdf180090 teaches 84745 and 83909).
+
+Attends:
+All 15 students attend 84745 class. All students are also a member of at least two other classes.
+
+
+Team: 
+The teams in each class. Right not the sections have the following teams
+	- 84745: Teams 1,2,3 each with 5 students
+	- 81717: Teams 1,2,3,4 each with 2 students
+	- 83909: Teams 1,2,3 each with 3 students
+	- 83568: Teams 1,2 each with 3 students
+	- 83717: Teams 1,2 each with 4 students
+
+Timeslot:
+There are currently 27 entries to represent 3 entries for each of the first 9 students in the 84745 class. The TimeslotID should auto increment on a per student basis.
+
+PeerReview:
+There are currently 25 Peer Reviews to represent 84745 Team 1's Midterm reviews. 
+
+Reviewed:
+Each student in 84745 Team 1 should review every other member in their group as well as themself.
+
+Criteria:
+There are 3 criteria. The criteriaID should auto increment as more are added.
+
+Scored: 
+For each of the 25 peer reviews in the system there are 3 crtieria that are being scored on. So there are currently 75 entries to represent the scores given for each criteria for each of the 75 reviews.
+
