@@ -41,14 +41,14 @@ FOREIGN KEY (SecCode) REFERENCES Section(SecCode)
 );  
 
 CREATE TABLE Team (  
-TeamNum char(3) NOT NULL,  
+TeamNum int NOT NULL,  
 SecCode char(5) NOT NULL,  
 PRIMARY KEY (TeamNum, SecCode),  
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  
 );  
 
 CREATE TABLE MemberOf (  
-TeamNum char(3) NOT NULL,  
+TeamNum int NOT NULL,  
 SecCode char(5) NOT NULL, 
 StuNetID char(9) NOT NULL,  
 PRIMARY KEY (TeamNum, StuNetID, SecCode),  
@@ -111,5 +111,22 @@ BEGIN
 
     -- Set the new TimeslotID
     SET NEW.TimeslotID = maxID + 1;
+END; //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER before_insert_team
+BEFORE INSERT ON Team
+FOR EACH ROW
+BEGIN
+    DECLARE maxTeamNum INT;
+    
+    -- Get the maximum TeamNum for the specific SecCode
+    SELECT COALESCE(MAX(TeamNum), 0) INTO maxTeamNum
+    FROM Team
+    WHERE SecCode = NEW.SecCode;
+
+    -- Set the new TeamNum by incrementing the maximum team number for the given section
+    SET NEW.TeamNum = maxTeamNum + 1;
 END; //
 DELIMITER ;
