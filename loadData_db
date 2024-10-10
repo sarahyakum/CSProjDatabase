@@ -90,13 +90,23 @@ VALUES
     ('rwf170011', 83909), 
     ('ckb160099', 83717);  
 
+
 INSERT INTO Team (TeamNum, SecCode) 
 VALUES 
-    (1, 84745), (2, 84745), (3, 84745), 
-    (1, 81717), (2, 81717), (3, 81717), (4, 81717), 
-    (1, 83909), (2, 83909), (3, 83909), 
-    (1, 83568), (2, 83568), 
-    (1, 83717), (2, 83717); 
+    (NULL, '84745'), -- Insert into section '84745'
+    (NULL, '84745'), 
+    (NULL, '84745'), 
+    (NULL, '81717'), -- Insert into section '81717'
+    (NULL, '81717'), 
+    (NULL, '81717'), 
+    (NULL, '81717'), 
+    (NULL, '83909'), -- Insert into section '83909'
+    (NULL, '83909'), 
+    (NULL, '83909'), 
+    (NULL, '83568'), -- Insert into section '83568'
+    (NULL, '83568'), 
+    (NULL, '83717'), -- Insert into section '83717'
+    (NULL, '83717');
 
 INSERT INTO MemberOf (TeamNum, SecCode, StuNetID) 
 VALUES 
