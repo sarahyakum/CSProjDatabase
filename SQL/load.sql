@@ -111,20 +111,20 @@ INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration) VALUES
 ('pmr190299', '2024-09-23', 'Met with team, presented what we\'d all done so far, talked about next steps.', '1:00');
 
 -- Inserting the data into the Peer Review Table
-INSERT INTO PeerReview (ReviewType, ReviewerID) VALUES  
-('Midterm', 'axa190000'), ('Midterm', 'axa190000'), ('Midterm', 'axa190000'), ('Midterm', 'axa190000'), ('Midterm', 'axa190000'), 
-('Midterm', 'dxa190111'), ('Midterm', 'dxa190111'), ('Midterm', 'dxa190111'), ('Midterm', 'dxa190111'), ('Midterm', 'dxa190111'), 
-('Midterm', 'sib170121'), ('Midterm', 'sib170121'), ('Midterm', 'sib170121'), ('Midterm', 'sib170121'), ('Midterm', 'sib170121'), 
-('Midterm', 'nxb200088'),('Midterm', 'nxb200088'), ('Midterm', 'nxb200088'), ('Midterm', 'nxb200088'), ('Midterm', 'nxb200088'), 
-('Midterm', 'cab160444'), ('Midterm', 'cab160444'), ('Midterm', 'cab160444'), ('Midterm', 'cab160444'), ('Midterm', 'cab160444'); 
+INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID) VALUES
+(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),
+(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),
+(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),
+(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),
+(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444');
  
  -- Inserting the data into the Reviewed Table
-INSERT INTO Reviewed (StuNetID, ReviewID) VALUES  
-('axa190000', 1), ('dxa190111', 2), ('sib170121', 3), ('nxb200088', 4), ('cab160444', 5), 
-('axa190000', 6), ('dxa190111', 7), ('sib170121', 8), ('nxb200088', 9), ('cab160444', 10), 
-('axa190000', 11), ('dxa190111', 12), ('sib170121', 13), ('nxb200088', 14), ('cab160444', 15), 
-('axa190000', 16), ('dxa190111', 17), ('sib170121', 18), ('nxb200088', 19), ('cab160444', 20), 
-('axa190000', 21), ('dxa190111', 22), ('sib170121', 23), ('nxb200088', 24), ('cab160444', 25); 
+INSERT INTO Reviewed (StuNetID, ReviewID, SecCode) VALUES
+('axa190000', 1, 84745),('dxa190111', 2, 84745),('sib170121', 3, 84745),('nxb200088', 4, 84745),('cab160444', 5, 84745),
+('axa190000', 6, 84745),('dxa190111', 7, 84745),('sib170121', 8, 84745),('nxb200088', 9, 84745),('cab160444', 10, 84745),
+('axa190000', 11, 84745),('dxa190111', 12, 84745),('sib170121', 13, 84745),('nxb200088', 14, 84745),('cab160444', 15, 84745),
+('axa190000', 16, 84745),('dxa190111', 17, 84745),('sib170121', 18, 84745),('nxb200088', 19, 84745),('cab160444', 20, 84745),
+('axa190000', 21, 84745),('dxa190111', 22, 84745),('sib170121', 23, 84745),('nxb200088', 24, 84745),('cab160444', 25, 84745);
 
 -- Inserting the data into the Criteria Table
 INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription) VALUES
