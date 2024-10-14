@@ -76,20 +76,23 @@ FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID)
 
 -- Creating the Peer Review Table
 CREATE TABLE PeerReview (   
-ReviewID int NOT NULL AUTO_INCREMENT,   
+ReviewID int NOT NULL AUTO_INCREMENT, 
+SecCode char(5) NOT NULL,  
 ReviewType char(7) NOT NULL,  
 ReviewerID char(9) NOT NULL,  
-PRIMARY KEY (ReviewID),   
-FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID)  
+PRIMARY KEY (ReviewID, SecCode),   
+FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID),  
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode)
 );  
 
 -- Creating the Reviewed Table: Relationship between Peer Review and student who is being reviewed 
 CREATE TABLE Reviewed (   
 StuNetID char(9) NOT NULL,  
 ReviewID int NOT NULL,  
-PRIMARY KEY (StuNetID, ReviewID),  
+SecCode char(5) NOT NULL,
+PRIMARY KEY (StuNetID, ReviewID, SecCode),  
 FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),  
-FOREIGN KEY (ReviewID) REFERENCES PeerReview(ReviewID)  
+FOREIGN KEY (ReviewID, SecCode) REFERENCES PeerReview(ReviewID, SecCode)  
 );  
 
 -- Creating the Criteria Table: Weak entity of section
@@ -109,7 +112,7 @@ CriteriaID int NOT NULL,
 SecCode char(5) NOT NULL,
 Score int NOT NULL,  
 PRIMARY KEY (ReviewID, CriteriaID, SecCode),  
-FOREIGN KEY (ReviewID) REFERENCES PeerReview(ReviewID),  
+FOREIGN KEY (ReviewID, SecCode) REFERENCES PeerReview(ReviewID, SecCode),  
 FOREIGN KEY (CriteriaID, SecCode) REFERENCES Criteria(CriteriaID, SecCode)  
 ); 
 
@@ -148,7 +151,7 @@ BEGIN
 END; //
 DELIMITER ;
 
--- Creating a trigger so that the auto-incremented based on the section
+-- Creating a trigger so that the criteria auto-incremented based on the section
 DELIMITER //
 CREATE TRIGGER before_criteria_team
 BEFORE INSERT ON Criteria
@@ -163,5 +166,23 @@ BEGIN
 
     -- Set the new TeamNum by incrementing the maximum team number for the given section
     SET NEW.CriteriaID = maxCriteriaNum + 1;
+END; //
+DELIMITER ;
+
+-- Creating a trigger so that the reviewID is auto-incremented based on the section
+DELIMITER //
+CREATE TRIGGER before_reviewID_team
+BEFORE INSERT ON PeerReview
+FOR EACH ROW
+BEGIN
+    DECLARE maxReviewNum INT;
+    
+    -- Get the maximum TeamNum for the specific SecCode
+    SELECT COALESCE(MAX(ReviewID), 0) INTO maxReviewNum
+    FROM PeerReview
+    WHERE SecCode = NEW.SecCode;
+
+    -- Set the new TeamNum by incrementing the maximum team number for the given section
+    SET NEW.ReviewID = maxReviewNum + 1;
 END; //
 DELIMITER ;
