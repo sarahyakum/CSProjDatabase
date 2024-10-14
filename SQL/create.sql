@@ -147,3 +147,21 @@ BEGIN
     SET NEW.TeamNum = maxTeamNum + 1;
 END; //
 DELIMITER ;
+
+-- Creating a trigger so that the auto-incremented based on the section
+DELIMITER //
+CREATE TRIGGER before_criteria_team
+BEFORE INSERT ON Criteria
+FOR EACH ROW
+BEGIN
+    DECLARE maxCriteriaNum INT;
+    
+    -- Get the maximum TeamNum for the specific SecCode
+    SELECT COALESCE(MAX(CriteriaID), 0) INTO maxCriteriaNum
+    FROM Criteria
+    WHERE SecCode = NEW.SecCode;
+
+    -- Set the new TeamNum by incrementing the maximum team number for the given section
+    SET NEW.CriteriaID = maxCriteriaNum + 1;
+END; //
+DELIMITER ;
