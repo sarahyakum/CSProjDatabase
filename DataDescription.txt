@@ -1,26 +1,25 @@
 Student: 
-There are 15 students, their password is currently set as their UTDID.
+There are 30 students, their password is currently set as their UTDID.
 
 Professor: 
 There are 5 professors, their password is currently their UTDID.
 
 Section: 
-There are 5 sections, including the Senior Design Class (SecCode: 84775 SecName: CS 4485.0W1)
+There are 3 sections. There are two sections of the senior design class (84745 CS 4485.0W1 and 83909 CS 4485.0W2), and one different class.
 
 Teaches: 
-There are 3 professors who teach one class, and one professor who teaches two classes (jdf180090 teaches 84745 and 83909).
+One professor teaches the two senior design classes, and a different professor teaches the other class in the db.
 
 Attends:
-All 15 students attend 84745 class. All students are also a member of at least two other classes.
+The first 15 students attend the first section of the Senior Design, the next 8 students attend the second section of the Senior Design. The last 7 attend the other class.
 
 
 Team: 
 The teams in each class. Right not the sections have the following teams
 	- 84745: Teams 1,2,3 each with 5 students
-	- 81717: Teams 1,2,3,4 each with 2 students
-	- 83909: Teams 1,2,3 each with 3 students
-	- 83568: Teams 1,2 each with 3 students
-	- 83717: Teams 1,2 each with 4 students
+	- 83909: Teams 1,2 each with 4 students
+	- 83568: Teams 1,2 where 1 has 4 students and 2 has 3 students
+
 
 Timeslot:
 There are currently 27 entries to represent 3 entries for each of the first 9 students in the 84745 class. The TimeslotID should auto increment on a per student basis.
@@ -32,7 +31,7 @@ Reviewed:
 Each student in 84745 Team 1 should review every other member in their group as well as themself.
 
 Criteria:
-There are 3 criteria. The criteriaID should auto increment as more are added.
+There are 3 criteria. The criteriaID should auto increment on a per section basis as more are added.
 
 Scored: 
 For each of the 25 peer reviews in the system there are 3 crtieria that are being scored on. So there are currently 75 entries to represent the scores given for each criteria for each of the 75 reviews.
