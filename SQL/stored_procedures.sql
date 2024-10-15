@@ -2,7 +2,7 @@ USE seniordesignproject;
 
 DELIMITER //
 
--- Stored Procedure to check whether the student's attempted username and password are in the system
+-- Procedure to check whether the student's attempted username and password are in the system
 -- Input: Student username, Student password
 -- Output: Count of matches in the system
 CREATE PROCEDURE check_student_login (
@@ -20,7 +20,7 @@ BEGIN
 END //
 
 
--- Stored Procedure to check whether the professor's attempted username and password are in the system
+-- Procedure to check whether the professor's attempted username and password are in the system
 -- Input: Professor username, Professor password
 -- Output: Integer count of the number of matches
 
@@ -39,7 +39,7 @@ BEGIN
 END //
 
 
--- Stored Procedure to change student password
+-- Procedure to change student password
 -- Input: Student Net ID, Old Password, New Password
 -- Output: 0 if the password was changed, 1 if it was not
 CREATE PROCEDURE change_student_password (
@@ -62,7 +62,7 @@ BEGIN
 	END IF;
 END //
 
--- Stored Procedure to change student password
+-- Procedure to change student password
 -- Input: Student Net ID, Old Password, New Password
 -- Output: 0 if the password was changed, 1 if it was not
 CREATE PROCEDURE change_professor_password (
@@ -86,7 +86,7 @@ BEGIN
 END //
 
 
--- Stored Procedure for inserting timeslots into the table
+-- Procedure for inserting timeslots into the table
 -- Inputs: Student Net ID, Timeslot date, description, and duration
 -- Output: 0 if the timeslot was inserted correctly, 1 if it was not
 CREATE PROCEDURE student_insert_timeslot (
@@ -104,7 +104,70 @@ BEGIN
         SET insert_status =0;
 	END IF;
 END //
+*/
 
+/*
+-- Procedure to return the total time the student has spent for the project
+-- Input: Student NetID
+-- Output: Total time in Minutes
+-- CALL student_total_time('student_netID', @TotalTime); SELECT @TotalTime;
+CREATE PROCEDURE student_total_time (
+	IN student_netID char(9),
+    OUT student_total INT)
+BEGIN 
+	SET student_total = 0;
+    
+    SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
+    INTO student_total
+    FROM Timeslot
+    WHERE StuNetID = student_netID;
+    
+END //
+
+
+-- Procedure to return the time has spent on the project within a certain date range
+-- Input: Student NetID
+-- Output: Total time in Minutes
+-- CALL student_total_time('student_netID', 'YYYY-MM-DD', 'YYYY-MM-DD', @TotalTime); SELECT @TotalTime;
+CREATE PROCEDURE student_time_in_range (
+	IN student_netID char(9),
+    IN startDate DATE,
+    IN endDate DATE,
+    OUT student_total INT)
+BEGIN 
+	SET student_total = 0;
+    
+    SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
+    INTO student_total
+    FROM Timeslot
+    WHERE StuNetID = student_netID AND TSDate BETWEEN startDate AND endDate;
+    
+END //
+
+-- Procedure for the professor to create a new criteria, but only if they teach the class
+-- Input: Professor NetID, Section Code, Criteria Name, Criteria Description
+-- Output:0 if the criteria added correctly, 1 if it was not
+CREATE PROCEDURE professor_create_criteria (
+	IN professor_netID char(9),
+    IN section_code char(5),
+    IN criteria_name varchar(35),
+    IN criteria_description varchar(300))
+BEGIN
+	DECLARE professor_teaches INT;
+    
+    SELECT COUNT(*) INTO professor_teaches
+    FROM Teaches
+    WHERE ProfNetID = professor_netID AND SecCode = section_code;
+    
+    IF professor_teaches > 0 THEN
+		INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription)
+        VALUES (section_code, criteria_name, criteria_description);
+        SELECT 0 AS professor_teaches;
+	ELSE
+		SELECT 1 AS professor_teaches;
+    END IF;
+
+END //
 
 DELIMITER ;
 
