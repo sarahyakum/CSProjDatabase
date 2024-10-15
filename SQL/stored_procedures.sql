@@ -104,9 +104,7 @@ BEGIN
         SET insert_status =0;
 	END IF;
 END //
-*/
 
-/*
 -- Procedure to return the total time the student has spent for the project
 -- Input: Student NetID
 -- Output: Total time in Minutes
