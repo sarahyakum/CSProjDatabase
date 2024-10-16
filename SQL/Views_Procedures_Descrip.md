@@ -67,3 +67,19 @@
       - *SubProcedures:* insert_peer_reviews and insert_scored_table  
       - *Creation Disclamer:* For this one it creates a lot of entries for the PeerReviews, Reviewed, and Scored Tables which would be extremely difficult to try and remove. So if when the professor is choosing to create the peer reviews we should display a 'Are you sure you want to do this? Once they have been created they cannot be altered or deleted.' Or something along those lines if that seems feasible.  
      - *Working With load.sql:* This initializes all of the scores to 0, so if you want to test the scores and averages don't use this procedure and just use the data in load.sql. However if you want to test this procedure then you would comment out the PeerReview, Reviewed, and Scored insertions in load.sql.
+
+ - **student_timeslot_by_date** : Retrieves all timeslots for a student on a given date
+      - *Inputs:* Student NetID, Timeslot Date
+      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+
+ - **student_timeslot_by_week** : Retrieves all timeslots for a student in a 7 day window (given start date)
+      - *Inputs:* Student NetID, Start Date
+      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+
+ - **student_timeslot_by_month** : Retrieves all timeslots for a student in a 30 day window (given start date)
+      - *Inputs:* Student NetID, Start Date
+      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+
+ - **get_section_criteria** : Retrieves all peer review criteria for a given professor's given section
+      - *Inputs:* Professor NetID, Section Code
+      - *Outputs:* For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
