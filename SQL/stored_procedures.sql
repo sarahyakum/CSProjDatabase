@@ -338,4 +338,58 @@ END//
 
 
 
--- Procedure
+-- Procedure to retrieve all timeslots for a specific student on a specific date
+-- Input: Student NetID, Timeslot Date
+-- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+CREATE PROCEDURE student_timeslot_by_date(
+    IN stu_netID char(9),
+    IN input_date DATE)
+BEGIN
+    SELECT * 
+    FROM student_daily_timeslots
+    WHERE StuNetID = stu_netID AND TSDate = input_date;
+END //
+
+
+-- Procedure to retrieve all timeslots for a specific student during a specific week (given a start date)
+-- Input: Student NetID, Start Date
+-- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+CREATE PROCEDURE student_timeslot_by_week(
+    IN stu_netID char(9),
+    IN start_date DATE)
+BEGIN
+    SELECT * 
+    FROM student_daily_timeslots
+    WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 7 DAY); 
+END //
+
+
+-- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date)
+-- Input: Student NetID, Start Date
+-- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+CREATE PROCEDURE student_timeslot_by_week(
+    IN stu_netID char(9),
+    IN start_date DATE)
+BEGIN
+    SELECT * 
+    FROM student_daily_timeslots
+    WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 30 DAY); 
+END //
+
+
+-- Procedure to retrive the peer review criteria for a given professor's given section
+-- Input: Professor NetID, Section Code
+-- Output: For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
+CREATE PROCEDURE get_section_criteria(
+    IN prof_netID char(9),
+    IN section_code char(5))
+BEGIN
+    SELECT *
+    FROM professor_peer_review_criteria
+    WHERE ProfNetID = prof_netID AND SecCode = section_code;
+END //
+
+
+DELIMITER ;
+
+
