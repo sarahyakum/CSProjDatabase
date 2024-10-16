@@ -367,7 +367,7 @@ END //
 -- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date)
 -- Input: Student NetID, Start Date
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-CREATE PROCEDURE student_timeslot_by_week(
+CREATE PROCEDURE student_timeslot_by_month(
     IN stu_netID char(9),
     IN start_date DATE)
 BEGIN
