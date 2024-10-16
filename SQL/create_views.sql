@@ -1,48 +1,52 @@
--- Student_Sections
-CREATE VIEW Student_Sections AS
-SELECT S.StuName, S.StuNetID, Sec.SecName, Sec.SecCode
-FROM Student S
-JOIN Attends A ON S.StuNetID = A.StuNetID
-JOIN Section Sec ON A.SecCode = Sec.SecCode;
+USE seniordesignproject;
 
--- Professor_Sections
-CREATE VIEW Professor_Sections AS
+-- View for all timeslots for all students in the system
+CREATE VIEW student_timeslots AS
+SELECT S.StuNetID, S.StuName, T.TSDate, T.TSDescription, T.TSDuration
+FROM Student S
+JOIN Timeslot T ON T.StuNetID = S.StuNetID;
+
+
+-- View for all criteria categories for all students in the system
+CREATE VIEW student_peer_review_criteria AS
+SELECT S.StuNetID, C.CriteriaName, C.CriteriaDescription, Sc.SecCode
+FROM Student S
+JOIN MemberOf M ON M.StuNetID = S.StuNetID
+JOIN Section Sc ON Sc.SecCode = M.SecCode
+JOIN Criteria C ON C.SecCode = Sc.SecCode;
+
+
+-- View for team number and section code for all students
+CREATE VIEW student_team_and_section AS
+SELECT M.TeamNum, M.SecCode, S.StuNetID, S.StuName
+FROM MemberOf M
+JOIN Student S ON M.StuNetID = S.StuNetID;
+
+
+-- View for all sections of all professors
+CREATE VIEW professor_sections AS
 SELECT P.ProfName, P.ProfNetID, Sec.SecName, Sec.SecCode
 FROM Professor P
 JOIN Teaches T ON P.ProfNetID = T.ProfNetID
 JOIN Section Sec ON T.SecCode = Sec.SecCode;
 
--- Team_Members
-CREATE VIEW Team_Members AS
-SELECT M.TeamNum, M.SecCode, S.StuNetID, S.StuName
-FROM MemberOf M
+
+-- View for all students in all teams of all sections of all professors
+CREATE VIEW professor_students AS
+SELECT P.ProfName, P.ProfNetID, Sc.SecName, Sc.SecCode, T.TeamNum, S.StuNetID, S.StuName
+FROM Professor P
+JOIN Teaches Te ON P.ProfNetID = Te.ProfNetID
+JOIN Section Sc ON Te.SecCode = Sc.SecCode
+JOIN Team T ON Sc.SecCode = T.SecCode
+JOIN MemberOf M ON T.TeamNum = M.TeamNum
 JOIN Student S ON M.StuNetID = S.StuNetID;
 
--- Section_Teams
-CREATE VIEW Section_Teams AS
-SELECT T.TeamNum, T.SecCode, S.SecName
-FROM Team T
-JOIN Section S ON T.SecCode = S.SecCode;
 
--- Student_Reviews
-CREATE VIEW Student_Reviews AS
-SELECT 
-    S.StuName AS ReviewedStudent, 
-    R.ReviewID, 
-    Reviewer.StuName AS ReviewerName, 
-    P.ReviewType, 
-    C.CriteriaName, 
-    Sc.Score
-FROM Reviewed R
-JOIN Student S ON R.StuNetID = S.StuNetID
-JOIN PeerReview P ON R.ReviewID = P.ReviewID
-JOIN Student Reviewer ON P.ReviewerID = Reviewer.StuNetID
-JOIN Scored Sc ON P.ReviewID = Sc.ReviewID
-JOIN Criteria C ON Sc.CriteriaID = C.CriteriaID
-ORDER BY S.StuName, Reviewer.StuName;
+-- View for all criteria categories for all sections of all professors
+CREATE VIEW professor_peer_review_criteria AS
+SELECT P.ProfNetID, C.CriteriaName, C.CriteriaDescription, Sc.SecCode
+FROM Professor P
+JOIN Teaches T ON T.ProfNetID = P.ProfNetID
+JOIN Section Sc ON Sc.SecCode = T.SecCode
+JOIN Criteria C ON C.SecCode = Sc.SecCode;
 
--- Student_Timeslots
-CREATE VIEW Student_Timeslots AS
-SELECT S.StuName, T.TimeslotID, T.TSDate, T.TSDescription, T.TSDuration
-FROM Timeslot T
-JOIN Student S ON T.StuNetID = S.StuNetID;
