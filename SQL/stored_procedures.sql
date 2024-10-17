@@ -2,6 +2,7 @@ USE seniordesignproject;
 
 DELIMITER //
 
+
 -- Procedure to check whether the student's attempted username and password are in the system
 -- Input: Student username, Student password
 -- Output: Count of matches in the system
@@ -61,6 +62,7 @@ BEGIN
 		VALUES (stu_netID, ts_date, ts_description, ts_duration);
         SET insert_status = 0;
 	END IF;
+    SELECT insert_status;
 END //
 
 -- Procedure to return the total time the student has spent for the project
@@ -99,6 +101,44 @@ BEGIN
 END //
 
 
+
+-- Procedure to retrieve all timeslots for a specific student on a specific date
+-- Input: Student NetID, Timeslot Date
+-- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+CREATE PROCEDURE student_timeslot_by_date(
+    IN stu_netID char(9),
+    IN input_date DATE)
+BEGIN
+    SELECT * 
+    FROM student_daily_timeslots
+    WHERE StuNetID = stu_netID AND TSDate = input_date;
+END //
+
+
+-- Procedure to retrieve all timeslots for a specific student during a specific week (given a start date)
+-- Input: Student NetID, Start Date
+-- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+CREATE PROCEDURE student_timeslot_by_week(
+    IN stu_netID char(9),
+    IN start_date DATE)
+BEGIN
+    SELECT * 
+    FROM student_daily_timeslots
+    WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 7 DAY); 
+END //
+
+
+-- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date)
+-- Input: Student NetID, Start Date
+-- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+CREATE PROCEDURE student_timeslot_by_month(
+    IN stu_netID char(9),
+    IN start_date DATE)
+BEGIN
+    SELECT * 
+    FROM student_daily_timeslots
+    WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 30 DAY); 
+END //
 
 
 -- Procedure to check whether the professor's attempted username and password are in the system
@@ -170,11 +210,12 @@ END //
 
 
 -- Procedure to allow the professor to view the student's averages in his sections
--- Input: Professor Net ID, Section Code
+-- Input: Professor Net ID, Section Code, Review Type
 -- Output: Pulls the student averages for each criteria
 CREATE PROCEDURE professor_view_averages (
 	IN professor_netID char(9),
-    IN section_code char(5))
+    IN section_code char(5),
+    IN review_type char(7))
 BEGIN
 	SELECT Stu.StuNetID, Stu.StuName, C.CriteriaName, AVG(Sc.Score) AS AverageScore
     FROM Scored Sc
@@ -183,20 +224,20 @@ BEGIN
     JOIN Student Stu ON PR.ReviewerID = Stu.StuNetID
     JOIN Attends A ON A.StuNetID = PR.ReviewerID AND A.SecCode = PR.SecCode
     JOIN Teaches T ON T.SecCode = A.SecCode AND T.ProfNetID = professor_netID
-    WHERE PR.SecCode = section_code
+    WHERE PR.SecCode = section_code AND PR.ReviewType = review_type
     GROUP BY Stu.StuNetID, Stu.StuName, C.CriteriaName
     ORDER BY Stu.StuNetID, C.CriteriaName;
 END //
 
 
 -- Procedure for the professor to view the individual scores given to a student
--- Inputs: Professor Net ID, Section Code, Student Net ID
+-- Inputs: Professor Net ID, Section Code, Student Net ID, Review Type
 -- Outputs: Reviewer net ID, Reviewer Name, Criteria Name, and Score
 CREATE PROCEDURE professor_view_individual_scores (
 	IN professor_netID char(9),
     IN section_code char(5),
-    IN student_netID char(9))
-
+    IN student_netID char(9),
+    IN review_type char(7))
 BEGIN 
 	SELECT Reviewer.StuNetID AS ReviewerNetID, Reviewer.StuName AS ReviewerName, 
     C.CriteriaName, Sc.Score
@@ -208,7 +249,7 @@ BEGIN
     JOIN Student Reviewer ON PR.ReviewerID = Reviewer.StuNetID
     JOIN Attends A ON A.StuNetID = PR.ReviewerID AND A.SecCode = PR.SecCode
     JOIN Teaches T ON T.SecCode = A.SecCode AND T.ProfNetID = professor_netID
-    WHERE PR.SecCode = section_code AND R.StuNetID = student_netID;
+    WHERE PR.SecCode = section_code AND R.StuNetID = student_netID AND PR.ReviewType = review_type;
 END //
 
 
@@ -338,45 +379,6 @@ END//
 
 
 
--- Procedure to retrieve all timeslots for a specific student on a specific date
--- Input: Student NetID, Timeslot Date
--- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-CREATE PROCEDURE student_timeslot_by_date(
-    IN stu_netID char(9),
-    IN input_date DATE)
-BEGIN
-    SELECT * 
-    FROM student_daily_timeslots
-    WHERE StuNetID = stu_netID AND TSDate = input_date;
-END //
-
-
--- Procedure to retrieve all timeslots for a specific student during a specific week (given a start date)
--- Input: Student NetID, Start Date
--- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-CREATE PROCEDURE student_timeslot_by_week(
-    IN stu_netID char(9),
-    IN start_date DATE)
-BEGIN
-    SELECT * 
-    FROM student_daily_timeslots
-    WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 7 DAY); 
-END //
-
-
--- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date)
--- Input: Student NetID, Start Date
--- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-CREATE PROCEDURE student_timeslot_by_month(
-    IN stu_netID char(9),
-    IN start_date DATE)
-BEGIN
-    SELECT * 
-    FROM student_daily_timeslots
-    WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 30 DAY); 
-END //
-
-
 -- Procedure to retrieve the peer review criteria for a given professor's given section
 -- Input: Professor NetID, Section Code
 -- Output: For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
@@ -420,6 +422,78 @@ BEGIN
 END //
 
 
-DELIMITER ;
 
 
+-- Procedure to insert the correct number of teams for a section 
+-- Inputs: Professor NetID, Section Code, Number of Teams for section
+-- Outputs: 0 if the teams were inserted correctly, 1 if they were not
+CREATE PROCEDURE professor_insert_num_teams (
+	IN professor_netID char(9),
+	IN section_code char(5),
+    IN num_teams INT)
+BEGIN 
+	DECLARE insertion_status INT DEFAULT 1;
+    
+	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
+		SELECT insertion_status;
+	END IF;
+        
+	insertion_loop: LOOP
+		IF num_teams > 0 THEN 
+			INSERT INTO Team (SecCode)
+            VALUES (section_code);
+            SET num_teams = num_teams - 1;
+		ELSE 
+			LEAVE insertion_loop;
+		END IF;
+    END LOOP insertion_loop;
+	SET insertion_status = 0;
+    SELECT insertion_status;
+END //
+
+
+
+-- Procedure to get the CriteriaID and info for a section before it it edited
+-- Input: Professor NetID, Section Code
+-- Output: CriteriaId, Criteria Name, Criteria Description
+CREATE PROCEDURE get_section_criteriaid(
+    IN professor_netID char(9),
+    IN section_code char(5))
+BEGIN
+	DECLARE retrieval_status INT DEFAULT 1;
+    
+    IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
+		SELECT retrieval_status;
+	END IF;
+    
+    SELECT CriteriaID, CriteriaName, CriteriaDescription
+    FROM Criteria
+    WHERE SecCode = section_code;
+    
+END //
+
+
+-- Procedure to edit the criteria
+-- Input: Professor NetID, Section Code, CriteriaID, Updated Criteria Name, updated Criteria Description
+-- Output: 0 if it was edited correctly, 1 if it was not
+CREATE PROCEDURE professor_edit_criteria (
+	IN professor_netID char(9),
+	IN section_code char(5), 
+    IN criteria_id INT, 
+    IN criteria_name varchar(35),
+    IN criteria_description varchar(300))
+BEGIN
+	DECLARE alter_status INT DEFAULT 1;
+    
+	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
+		SELECT retrieval_status;
+	END IF;
+    
+    
+    UPDATE Criteria
+    SET CriteriaName = criteria_name, CriteriaDescription = criteria_description
+    WHERE CriteriaID = criteria_id;
+    
+    SELECT 0 AS alter_status;
+
+END //
