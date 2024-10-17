@@ -50,3 +50,19 @@ JOIN Teaches T ON T.ProfNetID = P.ProfNetID
 JOIN Section Sc ON Sc.SecCode = T.SecCode
 JOIN Criteria C ON C.SecCode = Sc.SecCode;
 
+
+-- View for all scores that all students received in all professors' sections (for all criteria)
+CREATE VIEW professor_student_scores AS
+SELECT P.ProfNetID, Sec.SecCode, M.TeamNum, S.StuNetID AS RevieweeNetID, 
+PR.ReviewerID AS ReviewerNetID, PR.ReviewType, C.CriteriaName, Sc.score
+
+FROM Professor P 
+JOIN Teaches T ON T.ProfNetID = P.ProfNetID
+JOIN Section Sec ON Sec.SecCode = T.SecCode
+JOIN Attends A ON A.SecCode = Sec.SecCode
+JOIN Student S ON S.StuNetID = A.StuNetID
+JOIN Reviewed R ON R.StuNetID = S.StuNetID
+JOIN PeerReview PR ON PR.ReviewID = R.ReviewID
+JOIN Scored Sc ON Sc.ReviewID = PR.ReviewID
+JOIN Criteria C ON C.CriteriaID = Sc.CriteriaID
+JOIN MemberOf M ON M.StuNetID = S.StuNetID;
