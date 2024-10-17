@@ -377,7 +377,7 @@ BEGIN
 END //
 
 
--- Procedure to retrive the peer review criteria for a given professor's given section
+-- Procedure to retrieve the peer review criteria for a given professor's given section
 -- Input: Professor NetID, Section Code
 -- Output: For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
 CREATE PROCEDURE get_section_criteria(
@@ -387,6 +387,36 @@ BEGIN
     SELECT *
     FROM professor_peer_review_criteria
     WHERE ProfNetID = prof_netID AND SecCode = section_code;
+END //
+
+
+-- Procedure for a professor to retrieve the scores that a specific student in a specific section received from all team members (for all criteria)
+-- Input: Professor NetID, Section Code, Reviewee NetID, Review Type ("Midterm" or "Final")
+-- Output: Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
+CREATE PROCEDURE get_student_scores_received(
+    IN prof_netID char(9),
+    IN section_code char(5),
+    IN stu_netID char(9),
+    IN review_type char(7))
+BEGIN
+    SELECT *
+    FROM professor_student_scores
+    WHERE ProfNetID = prof_netID AND SecCode = section_Code AND RevieweeNetID = stu_netID AND ReviewType = review_type;
+END //
+
+
+-- Procedure for a professor to retrieve the scores that a specific student in a specific section gave to all team members (for all criteria)
+-- Input: Professor NetID, Section Code, Reviewer NetID, Review Type ("Midterm" or "Final")
+-- Output: Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
+CREATE PROCEDURE get_student_scores_given(
+    IN prof_netID char(9),
+    IN section_code char(5),
+    IN stu_netID char(9),
+    IN review_type char(7))
+BEGIN
+    SELECT *
+    FROM professor_student_scores
+    WHERE ProfNetID = prof_netID AND SecCode = section_Code AND ReviewerNetID = stu_netID AND ReviewType = review_type;
 END //
 
 
