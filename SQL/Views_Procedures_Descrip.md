@@ -107,3 +107,7 @@
     - *Inputs:* Professor NetID, Section Code, CriteriaID, Updated Criteria Name, Updated Criteria Description
     - *Outputs:* 0 if it was edited corretly, 1 if it was not
     - Ideally for this one get_section_criteriaid would be called first which would return all of the information for the criteria in this section, and then they would be able to alter from there because the CriteriaID is necessary to make the edits.
+
+- **edit_scores_given** : Allows the professor to edit the scores that a student gave to a different student
+      - *Inputs:* Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score
+      - *Outputs:* 0 if altered corretly, 1 if was not
