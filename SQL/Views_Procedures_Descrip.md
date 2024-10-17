@@ -36,19 +36,7 @@
 
   - **student_insert_timeslot** : Allows the student to insert a timeslot  
       - *Inputs:* Student NetID, Timeslot Date, Description, and Duration  (Date in SQL is in format 'YYYY-MM-DD')  
-      - *Outputs:* 0 if the password was changed correctly, 1 if it was not
-
-  - **student_timeslot_by_date** : Retrieves all timeslots for a student on a given date
-      - *Inputs:* Student NetID, Timeslot Date
-      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-
-  - **student_timeslot_by_week** : Retrieves all timeslots for a student in a 7 day window (given start date)
-      - *Inputs:* Student NetID, Start Date
-      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-
-  - **student_timeslot_by_month** : Retrieves all timeslots for a student in a 30 day window (given start date)
-      - *Inputs:* Student NetID, Start Date
-      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+      - *Outputs:* 0 if timeslot was inserted correctly, 1 if it was not
 
   
 ## General
@@ -60,6 +48,18 @@
   - **student_time_in_range** : Adds up the total time the student has spent during a given date range   
       - *Inputs:* Student NetID, Start Date, End Date (Dates in SQL are in format 'YYYY-MM-DD')   
       - *Outputs:* The total time in minutes for that range
+   
+    - **student_timeslot_by_date** : Retrieves all timeslots for a student on a given date
+      - *Inputs:* Student NetID, Timeslot Date
+      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+
+  - **student_timeslot_by_week** : Retrieves all timeslots for a student in a 7 day window (given start date)
+      - *Inputs:* Student NetID, Start Date
+      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+
+  - **student_timeslot_by_month** : Retrieves all timeslots for a student in a 30 day window (given start date)
+      - *Inputs:* Student NetID, Start Date
+      - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
 
 
 ## Professor 
@@ -77,11 +77,11 @@
       - *Outputs:* 0 if the criteria was added correctly, 1 if it was not
 
   - **professor_view_averages** : Allows the professor to view the average score given to each student based on the criteria  
-      - *Inputs:* Professor NetID, Section Code  
+      - *Inputs:* Professor NetID, Section Code, Review Type (Midterm or Final)  
       - *Outputs:* Pulls the student averages for each criteria
 
   - **change_view_individual_scores** : Allows the professor to view the individual scores the student received  
-      - *Inputs:* Professor NetID, Section Code, Student NetID  
+      - *Inputs:* Professor NetID, Section Code, Student NetID, Review Type (Midterm or Final)  
       - *Outputs:* Reviewer NetID, Reviewer Name, Criteria Name, and Score
 
   - **create_peer_reviews** : Allows the professor to create the peer reviews for a section  
