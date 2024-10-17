@@ -48,8 +48,8 @@
   - **student_time_in_range** : Adds up the total time the student has spent during a given date range   
       - *Inputs:* Student NetID, Start Date, End Date (Dates in SQL are in format 'YYYY-MM-DD')   
       - *Outputs:* The total time in minutes for that range
-   
-    - **student_timeslot_by_date** : Retrieves all timeslots for a student on a given date
+
+  - **student_timeslot_by_date** : Retrieves all timeslots for a student on a given date
       - *Inputs:* Student NetID, Timeslot Date
       - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
 
