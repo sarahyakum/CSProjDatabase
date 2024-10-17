@@ -422,6 +422,39 @@ BEGIN
 END //
 
 
+-- Procedure to allow a professor to edit the scores that a student gave to a different student
+-- Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score
+-- Outputs: 0 if altered corretly, 1 if was not
+CREATE PROCEDURE edit_scores_given (
+	IN professor_netID char(9),
+    IN section_code char(5),
+    IN reviewer_netID char(9),
+    IN reviewee_netID char(9),
+    IN criteria_name varchar(35),
+    IN new_score INT)
+BEGIN 
+	DECLARE edit_status INT DEFAULT 1;
+    DECLARE criteria_id INT;
+    DECLARE review_id INT;
+    
+	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
+		SELECT edit_status;
+	END IF;
+    
+    SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name);
+    SET review_id = (SELECT pr.ReviewID FROM PeerReview pr JOIN Reviewed r
+		ON pr.ReviewID = r.ReviewID AND pr.SecCode = r.SecCode
+		WHERE pr.SecCode = section_code AND pr.ReviewerID = reviewer_netID AND r.StuNetID = reviewee_netID ); 
+    
+    UPDATE Scored
+    SET Score = new_score
+    WHERE CriteriaID = criteria_id AND SecCode = section_code AND ReviewID = review_id;
+    
+    SELECT 0 AS edit_status;
+    
+
+END //
+
 
 
 -- Procedure to insert the correct number of teams for a section 
@@ -497,3 +530,7 @@ BEGIN
     SELECT 0 AS alter_status;
 
 END //
+
+
+
+DELIMITER ;
