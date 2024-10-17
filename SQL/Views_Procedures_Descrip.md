@@ -94,3 +94,16 @@
  - **get_section_criteria** : Retrieves all peer review criteria for a given professor's given section
       - *Inputs:* Professor NetID, Section Code
       - *Outputs:* For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
+
+- **professor_insert_num_teams** : Inserts x teams into the section
+    - *Inputs:* Professor NetID, Section Code, Number of Teams
+    - *Outputs:* 0 if the teams were inserted correctly, 1 if they were not
+ 
+- **get_section_criteriaid** : For the professor to get the criteria ID info for the section before being able to edit it
+    - *Inputs:* Professor NetID, Section Code
+    - *Outputs:* CriteriaID, Criteria Name, Criteria Description for all Criteria
+ 
+- **professor_edit_criteria** : Allows the professor to enter an updated Criteria Name and Description
+    - *Inputs:* Professor NetID, Section Code, CriteriaID, Updated Criteria Name, Updated Criteria Description
+    - *Outputs:* 0 if it was edited corretly, 1 if it was not
+    - Ideally for this one get_section_criteriaid would be called first which would return all of the information for the criteria in this section, and then they would be able to alter from there because the CriteriaID is necessary to make the edits.
