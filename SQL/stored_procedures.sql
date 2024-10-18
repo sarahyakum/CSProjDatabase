@@ -45,7 +45,8 @@ BEGIN
 END //
 
 
--- Procedure for inserting timeslots into the table
+
+-- Procedure for inserting timeslots into the table, descipriotn >= 30 characters, Within past 3 days and not in future
 -- Inputs: Student Net ID, Timeslot date, description, and duration
 -- Output: 0 if the timeslot was inserted correctly, 1 if it was not
 CREATE PROCEDURE student_insert_timeslot (
@@ -55,15 +56,68 @@ CREATE PROCEDURE student_insert_timeslot (
     IN ts_duration varchar(5))
 BEGIN
 	DECLARE insert_status INT DEFAULT 0;
-    IF LENGTH(ts_description) < 30 THEN 
+    IF (LENGTH(ts_description) < 30) OR (ts_date <= NOW() - INTERVAL 3 DAY) OR (ts_date > NOW()) THEN 
 		SET insert_status = 1;
     ELSE
 		INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration)
-		VALUES (stu_netID, ts_date, ts_description, ts_duration);
+		VALUES (student_netID, ts_date, ts_description, ts_duration);
         SET insert_status = 0;
 	END IF;
     SELECT insert_status;
 END //
+
+
+
+-- Procedure to allow students to edit their timeslot, have to be within past 3 days and the description has to be longer than 30 characters
+-- Inputs: Student NetId, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Deuration
+-- Outputs: 0 if was altered correctly, 1 if it was not
+CREATE PROCEDURE student_edit_timeslot (
+	IN student_netID char(9),
+    IN ts_date DATE,
+    IN updated_description varchar(200),
+    IN updated_duration char(5))
+BEGIN 
+	DECLARE edit_status INT DEFAULT 1;
+    
+    IF NOT EXISTS (SELECT TimeslotID FROM Timeslot WHERE TSDate = ts_date AND StuNetID = student_netID) 
+    OR (ts_date <= NOW() - INTERVAL 3 DAY)
+    OR ( ts_date > NOW()) 
+    OR (LENGTH(updated_description) < 30) THEN 
+		SELECT edit_status;
+	END IF;
+    
+    
+    UPDATE Timeslot
+    SET TSDuration = updated_duration, TSDescription = updated_description
+    WHERE StuNetID = student_netID AND TSDate = ts_date;
+    
+    SELECT 0 AS edit_status;
+
+END //
+
+
+
+-- Procedure to allow students to delete timeslots that are within the three previous days
+-- Inputs: Student NetID, Timeslot Date
+-- Outputs: 0 if deleted correctly, 1 otherwise
+CREATE PROCEDURE student_delete_timeslot (
+	IN student_netID char(9),
+    IN ts_date DATE)
+BEGIN 
+	DECLARE deletion_status INT DEFAULT 1;
+    
+    IF ts_date >= NOW() - INTERVAL 3 DAY THEN 
+		SELECT deletion_status;
+	END IF;
+    
+    DELETE FROM Timeslot 
+    WHERE TSDate = ts_date AND StuNetID = student_netID;
+    
+    SELECT 0 AS deletion_status;
+
+END //
+
+
 
 -- Procedure to return the total time the student has spent for the project
 -- Input: Student NetID, Start Date, End Date
@@ -138,6 +192,40 @@ BEGIN
     SELECT * 
     FROM student_daily_timeslots
     WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 30 DAY); 
+END //
+
+
+-- Procedure to insert a student score for another student
+-- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score
+-- Output: 0 if it was inserted correctly, 1 if it was not
+CREATE PROCEDURE student_insert_score (
+	IN section_code char(5),
+	IN reviewer_netID char(9),
+    IN reviewee_netID char(9),
+    IN criteria_name varchar(35),
+    IN updated_score INT)
+inserting_score: BEGIN
+	DECLARE insertion_status INT DEFAULT 1;
+	DECLARE review_id INT DEFAULT 0;
+    DECLARE criteria_id INT DEFAULT 0;
+    
+	SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name);
+    
+    SET review_id = (SELECT pr.ReviewID FROM PeerReview pr JOIN Reviewed r
+		ON pr.ReviewID = r.ReviewID AND pr.SecCode = r.SecCode
+		WHERE pr.SecCode = section_code AND pr.ReviewerID = reviewer_netID AND r.StuNetID = reviewee_netID ); 
+    
+    IF (criteria_id IS NULL) OR (review_ID IS NULL) OR (updated_score > 5) OR (updated_score < 0) THEN 
+		SELECT insertion_status;
+        LEAVE inserting_score;
+	END IF;
+    
+    UPDATE Scored
+    SET Score = updated_score
+    WHERE SecCode = section_code AND ReviewID = review_id AND CriteriaID = criteria_id;
+    
+    SELECT 0 AS insertion_status;
+
 END //
 
 
@@ -422,7 +510,7 @@ BEGIN
 END //
 
 
--- Procedure to allow a professor to edit the scores that a student gave to a different student
+-- Procedure to edit the scores that a student gave to a different student
 -- Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score
 -- Outputs: 0 if altered corretly, 1 if was not
 CREATE PROCEDURE edit_scores_given (
@@ -486,6 +574,32 @@ END //
 
 
 
+-- Procedure to Delete a team from the database, will remove all of the students from the team first 
+-- Inputs: Professor NetID, Section Code, Team Num
+-- Outputs: 0 if the deletion was successful, 1 if it was not
+CREATE PROCEDURE professor_delete_team (
+	IN professor_netID char(9),
+    IN section_code char(5),
+    IN team_num INT)
+BEGIN 
+	DECLARE deletion_status INT DEFAULT 1;
+    
+	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
+		SELECT insertion_status;
+	END IF;
+    
+    DELETE FROM MemberOf
+    WHERE TeamNum = team_num AND SecCode = section_code;
+    
+    DELETE FROM Team
+    WHERE TeamNum = team_num AND SecCode = section_code;
+    
+    SELECT 0 AS deletion_status;
+	
+END //
+
+
+
 -- Procedure to get the CriteriaID and info for a section before it it edited
 -- Input: Professor NetID, Section Code
 -- Output: CriteriaId, Criteria Name, Criteria Description
@@ -531,6 +645,58 @@ BEGIN
 
 END //
 
+-- Procedure to allow a professor to delete a criteria 
+-- Inputs: Professor NetID, Section Code, Criteria Name
+-- Outputs: 0 if it was deleted correctly, 1 if it was not
+-- Disclaimer: Cannot delete a criteria that has been used to create the Peer Reviews and Scored Table
+CREATE PROCEDURE professor_delete_criteria (
+	IN professor_netID char(9),
+    IN section_code char(5),
+    IN criteria_name varchar(35))
+criteria_deletion:BEGIN 
+	DECLARE deletion_status INT DEFAULT 1;
+    
+	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
+		SELECT change_status;
+	END IF;
+    
+    IF EXISTS (SELECT * FROM Scored WHERE CriteriaName = criteria_name AND SecCode = section_code) THEN 
+		SELECT change_status;
+        LEAVE criteria_deletion;
+	END IF;
+    
+    DELETE FROM Criteria
+    WHERE CriteriaName = criteria_name AND SecCode = section_code;
+    
+    SELECT 0 AS deletion_status;
+
+
+END //
+
+
+-- Procedure to allow the professor to change a student's team number
+-- Input: Professor NetID, Section Code, Student NetID, New Team Number
+-- Output: 0 if the team was changed correctly, 1 if it was not
+CREATE PROCEDURE professor_change_student_team(
+	IN professor_netID char(9),
+    IN section_code char(5),
+    IN student_netID char(9),
+    IN new_team INT)
+BEGIN
+	DECLARE change_status INT DEFAULT 1;
+	DECLARE old_team INT;
+    
+	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
+		SELECT change_status;
+	END IF;
+    
+    UPDATE MemberOf 
+    SET TeamNum = new_team
+    WHERE SecCode = section_code AND StuNetID = student_netID;
+
+	SELECT 0 AS change_status;
+
+END //
 
 
 DELIMITER ;
