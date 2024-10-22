@@ -101,6 +101,7 @@ CriteriaID int NOT NULL AUTO_INCREMENT,
 SecCode char(5) NOT NULL,
 CriteriaName varchar(35) NOT NULL,  
 CriteriaDescription varchar(300),  
+ReviewType char(7) NOT NULL,
 PRIMARY KEY (CriteriaID, SecCode),
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)   
 );  
@@ -166,23 +167,5 @@ BEGIN
 
     -- Set the new TeamNum by incrementing the maximum team number for the given section
     SET NEW.CriteriaID = maxCriteriaNum + 1;
-END; //
-DELIMITER ;
-
--- Creating a trigger so that the reviewID is auto-incremented based on the section
-DELIMITER //
-CREATE TRIGGER before_reviewID_team
-BEFORE INSERT ON PeerReview
-FOR EACH ROW
-BEGIN
-    DECLARE maxReviewNum INT;
-    
-    -- Get the maximum TeamNum for the specific SecCode
-    SELECT COALESCE(MAX(ReviewID), 0) INTO maxReviewNum
-    FROM PeerReview
-    WHERE SecCode = NEW.SecCode;
-
-    -- Set the new TeamNum by incrementing the maximum team number for the given section
-    SET NEW.ReviewID = maxReviewNum + 1;
 END; //
 DELIMITER ;
