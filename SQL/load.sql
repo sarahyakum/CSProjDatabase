@@ -111,12 +111,16 @@ INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration) VALUES
 ('pmr190299', '2024-09-23', 'Met with team, presented what we\'d all done so far, talked about next steps.', '1:00');
 
 -- Inserting the data into the Peer Review Table
+
 INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID) VALUES
 (84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),
 (84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),
 (84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),
 (84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),
 (84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444');
+ 
+ 
+ 
  
  -- Inserting the data into the Reviewed Table
 INSERT INTO Reviewed (StuNetID, ReviewID, SecCode) VALUES
@@ -126,11 +130,14 @@ INSERT INTO Reviewed (StuNetID, ReviewID, SecCode) VALUES
 ('axa190000', 16, 84745),('dxa190111', 17, 84745),('sib170121', 18, 84745),('nxb200088', 19, 84745),('cab160444', 20, 84745),
 ('axa190000', 21, 84745),('dxa190111', 22, 84745),('sib170121', 23, 84745),('nxb200088', 24, 84745),('cab160444', 25, 84745);
 
+
+
 -- Inserting the data into the Criteria Table
-INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription) VALUES
-(84745, 'Contributing to Team''s Work', 'How well does the person contributions improve the team''s work? Do they help their teammates who are having a difficult time completing their work?'),
-(84745, 'Interacting with Teammates', 'Do they show an interest in their teammates'' ideas? Do they provide encouragement? Do they ask for feedback and use suggestions?'),
-(84745, 'Keeping Team on Track', 'Do they watch the conditions affecting the team and monitor the progress? Do they make sure the team is making appropriate progress? Do they give feedback on a timely manner?');
+INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription, ReviewType) VALUES
+(84745, 'Contributing to Team''s Work', 'How well does the person contributions improve the team''s work? Do they help their teammates who are having a difficult time completing their work?', 'Midterm'),
+(84745, 'Interacting with Teammates', 'Do they show an interest in their teammates'' ideas? Do they provide encouragement? Do they ask for feedback and use suggestions?', 'Midterm'),
+(84745, 'Keeping Team on Track', 'Do they watch the conditions affecting the team and monitor the progress? Do they make sure the team is making appropriate progress? Do they give feedback on a timely manner?', 'Midterm');
+
 
 -- Inserting the data into the Scored Table
 INSERT INTO Scored (ReviewID, CriteriaID, SecCode, Score) VALUES
