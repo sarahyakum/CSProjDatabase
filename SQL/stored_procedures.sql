@@ -1,122 +1,158 @@
 USE seniordesignproject;
 
 DELIMITER //
-
-
 -- Procedure to check whether the student's attempted username and password are in the system
--- Input: Student username, Student password
--- Output: Count of matches in the system
+-- Input: Student username, Student password, A way for the error message to be returned
+-- Output: Error Message: 'Success' or 'Incorrect username or password' 
 CREATE PROCEDURE check_student_login (
 	IN stu_input_username varchar(20), 
-    IN stu_input_password varchar(20)
-    )
-BEGIN
+    IN stu_input_password varchar(20),
+    OUT error_message varchar(100))
+check_stu_login:BEGIN
 	DECLARE user_count INT;
+    SET error_message = 'Success';
+    
+	IF stu_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
+        SET error_message = 'Username must be alphanumeric';
+        LEAVE check_stu_login;
+	END IF;
     
 	SELECT COUNT(*) INTO user_count
 	FROM Student
 	WHERE StuNetID = stu_input_username AND StuPassword = stu_input_password;
     
-    SELECT user_count AS user_count_result;
+    IF user_count < 1 THEN 
+		SET error_message = 'Incorrect username or password';
+        LEAVE check_stu_login;
+	END IF;
 END //
 
 
 -- Procedure to change student password
--- Input: Student Net ID, Old Password, New Password
--- Output: 0 if the password was changed, 1 if it was not
+-- Input: Student Net ID, Old Password, New Password, A variable for the error message to be returned as
+-- Output: Error Message: 'Success', 'Incorrect username or password', or 'Password cannot be the same'
 CREATE PROCEDURE change_student_password (
 	IN stu_username varchar(20),
     IN old_student_password varchar(20),
-    IN new_student_password varchar(20))
-BEGIN
+    IN new_student_password varchar(20),
+    OUT error_message varchar(100))
+change_stu_password: BEGIN
 	DECLARE user_count INT;
+    SET error_message = 'Success';
+    
+	IF stu_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
+        SET error_message = 'Username must be alphanumeric';
+        LEAVE change_stu_password;
+	END IF;
+    
     SELECT COUNT(*) INTO user_count
     FROM Student
     WHERE StuNetID = stu_username AND StuPassword = old_student_password;
+    
+	IF user_count < 1 THEN 
+		SET error_message = 'Incorrect username or password';
+        LEAVE change_stu_password;
+	ELSEIF old_student_password = new_student_password THEN 
+		SET error_message = 'Password cannot be the same';
+        LEAVE change_stu_password;
+	END IF;
     
     IF user_count > 0 THEN 
 		UPDATE Student
 		SET StuPassword = new_student_password
 		WHERE StuNetID = stu_username;
-		SELECT 0 AS password_change_status;
-	ELSE
-		SELECT 1 AS password_change_status;
 	END IF;
 END //
 
 
-
 -- Procedure for inserting timeslots into the table, descipriotn >= 30 characters, Within past 3 days and not in future
--- Inputs: Student Net ID, Timeslot date, description, and duration
--- Output: 0 if the timeslot was inserted correctly, 1 if it was not
+-- Inputs: Student Net ID, Timeslot date, description, duration, and a variable to hold the error message
+-- Output: Error Message: 'Success' or a description of which condition it violated
 CREATE PROCEDURE student_insert_timeslot (
 	IN student_netID char(9),
     IN ts_date DATE,
     IN ts_description varchar(200),
-    IN ts_duration varchar(5))
-BEGIN
-	DECLARE insert_status INT DEFAULT 0;
-    IF (LENGTH(ts_description) < 30) OR (ts_date <= NOW() - INTERVAL 3 DAY) OR (ts_date > NOW()) THEN 
-		SET insert_status = 1;
-    ELSE
-		INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration)
-		VALUES (student_netID, ts_date, ts_description, ts_duration);
-        SET insert_status = 0;
-	END IF;
-    SELECT insert_status;
+    IN ts_duration varchar(5),
+    OUT error_message varchar(100))
+inserting_timeslot:BEGIN
+	SET error_message = 'Success';
+    
+    -- Checking constraints: description longer than 30 character, date in last 3 days and not in future, duration in correct format
+    IF (LENGTH(ts_description) < 30) THEN
+		SET error_message = 'Description must be at least 30 characters';
+        LEAVE inserting_timeslot;
+    ELSEIF (ts_date <= NOW() - INTERVAL 3 DAY) THEN
+		SET error_message = 'Can only insert timeslots within the past 3 days';
+        LEAVE inserting_timeslot;
+    ELSEIF (ts_date > NOW()) THEN
+		SET error_message = 'Cannot add timeslots for future dates';
+        LEAVE inserting_timeslot;
+    ELSEIF (ts_duration NOT REGEXP '^(2[0-3]|[01][0-9]):([0-5][0-9])$') THEN 
+		SET error_message = 'Durations must be in the form HH:MM and cannot 24 or more hours or more than 60 minutes.';
+        LEAVE inserting_timeslot;
+    END IF;
+    
+	INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration)
+	VALUES (student_netID, ts_date, ts_description, ts_duration);
+    
 END //
 
-
-
 -- Procedure to allow students to edit their timeslot, have to be within past 3 days and the description has to be longer than 30 characters
--- Inputs: Student NetId, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Deuration
--- Outputs: 0 if was altered correctly, 1 if it was not
+-- Inputs: Student NetId, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Deuration, and a variable to hold the error message
+-- Outputs: Error Message: 'Success' or a description of which condition it violated
 CREATE PROCEDURE student_edit_timeslot (
 	IN student_netID char(9),
     IN ts_date DATE,
     IN updated_description varchar(200),
-    IN updated_duration char(5))
-BEGIN 
-	DECLARE edit_status INT DEFAULT 1;
+    IN updated_duration char(5),
+    OUT error_message varchar(100))
+edit_timeslot:BEGIN 
+	SET error_message = 'Success';
     
-    IF NOT EXISTS (SELECT TimeslotID FROM Timeslot WHERE TSDate = ts_date AND StuNetID = student_netID) 
-    OR (ts_date <= NOW() - INTERVAL 3 DAY)
-    OR ( ts_date > NOW()) 
-    OR (LENGTH(updated_description) < 30) THEN 
-		SELECT edit_status;
-	END IF;
-    
+    -- Checking constraints: description longer than 30 character, date in last 3 days and not in future, duration in correct format
+    IF (LENGTH(updated_description) < 30) THEN
+		SET error_message = 'Description must be at least 30 characters';
+        LEAVE edit_timeslot;
+    ELSEIF (ts_date <= NOW() - INTERVAL 3 DAY) THEN
+		SET error_message = 'Can only insert timeslots within the past 3 days';
+        LEAVE edit_timeslot;
+    ELSEIF (ts_date > NOW()) THEN
+		SET error_message = 'Cannot add timeslots for future dates';
+        LEAVE edit_timeslot;
+    ELSEIF (updated_duration NOT REGEXP '^(2[0-3]|[01][0-9]):([0-5][0-9])$') THEN 
+		SET error_message = 'Durations must be in the form HH:MM and cannot 24 or more hours or more than 60 minutes.';
+        LEAVE edit_timeslot;
+    END IF;
     
     UPDATE Timeslot
     SET TSDuration = updated_duration, TSDescription = updated_description
     WHERE StuNetID = student_netID AND TSDate = ts_date;
-    
-    SELECT 0 AS edit_status;
 
 END //
 
 
-
 -- Procedure to allow students to delete timeslots that are within the three previous days
--- Inputs: Student NetID, Timeslot Date
--- Outputs: 0 if deleted correctly, 1 otherwise
+-- Inputs: Student NetID, Timeslot Date, and a variable to hold the error message
+-- Outputs: Error Message: 'Success' or 'Must be within the previous 3 days to delete'
 CREATE PROCEDURE student_delete_timeslot (
 	IN student_netID char(9),
-    IN ts_date DATE)
-BEGIN 
-	DECLARE deletion_status INT DEFAULT 1;
+    IN ts_date DATE,
+    OUT error_message varchar(100))
+delete_timeslot: BEGIN 
+	SET error_message = 'Success';
     
     IF ts_date >= NOW() - INTERVAL 3 DAY THEN 
-		SELECT deletion_status;
+		SET error_message = 'Must be within the previous 3 days to delete';
+        LEAVE delete_timeslot;
+	ELSEIF NOT EXISTS (SELECT * FROM Timeslot WHERE StuNetID = student_netID AND TSDate = ts_date) THEN
+		SET error_message = 'Timeslot does not exist for this date';
+        LEAVE delete_timeslot;
 	END IF;
     
     DELETE FROM Timeslot 
     WHERE TSDate = ts_date AND StuNetID = student_netID;
-    
-    SELECT 0 AS deletion_status;
 
 END //
-
 
 
 -- Procedure to return the total time the student has spent for the project
@@ -127,12 +163,10 @@ CREATE PROCEDURE student_total_time (
 	IN student_netID char(9),
     OUT student_total INT)
 BEGIN 
-	SET student_total = 0;
     
-    SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
-    INTO student_total
+    SET student_total = (SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
     FROM Timeslot
-    WHERE StuNetID = student_netID;
+    WHERE StuNetID = student_netID);
 END //
 
 
@@ -155,9 +189,8 @@ BEGIN
 END //
 
 
-
 -- Procedure to retrieve all timeslots for a specific student on a specific date
--- Input: Student NetID, Timeslot Date
+-- Input: Student NetID, Timeslot Date ('YYYY-MM-DD')
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
 CREATE PROCEDURE student_timeslot_by_date(
     IN stu_netID char(9),
@@ -194,106 +227,137 @@ BEGIN
     WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 30 DAY); 
 END //
 
-
 -- Procedure to insert a student score for another student
--- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score
--- Output: 0 if it was inserted correctly, 1 if it was not
+-- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, @Variable to get the error message
+-- Output: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE student_insert_score (
 	IN section_code char(5),
 	IN reviewer_netID char(9),
     IN reviewee_netID char(9),
     IN criteria_name varchar(35),
-    IN updated_score INT)
+    IN updated_score INT,
+    OUT error_message varchar(100))
 inserting_score: BEGIN
-	DECLARE insertion_status INT DEFAULT 1;
 	DECLARE review_id INT DEFAULT 0;
     DECLARE criteria_id INT DEFAULT 0;
-    
-	SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name);
+    DECLARE review_type char(7);
+    SET error_message = 'Success';
     
     SET review_id = (SELECT pr.ReviewID FROM PeerReview pr JOIN Reviewed r
 		ON pr.ReviewID = r.ReviewID AND pr.SecCode = r.SecCode
 		WHERE pr.SecCode = section_code AND pr.ReviewerID = reviewer_netID AND r.StuNetID = reviewee_netID ); 
+        
+	SET review_type = (SELECT ReviewType FROM PeerReview WHERE ReviewID = review_id);
+	
+    SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name AND ReviewType = review_type);
     
-    IF (criteria_id IS NULL) OR (review_ID IS NULL) OR (updated_score > 5) OR (updated_score < 0) THEN 
-		SELECT insertion_status;
+    IF (criteria_id IS NULL) THEN 
+		SET error_message = 'Criteria ID does not exist';
+        LEAVE inserting_score;
+    ELSEIF (review_ID IS NULL) THEN 
+		SET error_message = 'Review does not exist';
+        LEAVE inserting_score;
+    ELSEIF (updated_score > 5) OR (updated_score < 0) THEN 
+		SET error_message = 'Score must be between 0 and 5';
         LEAVE inserting_score;
 	END IF;
     
     UPDATE Scored
     SET Score = updated_score
     WHERE SecCode = section_code AND ReviewID = review_id AND CriteriaID = criteria_id;
-    
-    SELECT 0 AS insertion_status;
-
 END //
 
 
 -- Procedure to check whether the professor's attempted username and password are in the system
--- Input: Professor username, Professor password
--- Output: Integer count of the number of matches
+-- Input: Professor username, Professor password, @Variable to get the error message
+-- Output: Error Message: 'Success' or 'Incorrect username or password'
 CREATE PROCEDURE check_professor_login (
 	IN prof_input_username varchar(20), 
-    IN prof_input_password varchar(20)
-    )
-BEGIN
-	DECLARE user_count INT;
+    IN prof_input_password varchar(20),
+    OUT error_message varchar(100))
+check_prof_login:BEGIN
+	DECLARE user_count INT DEFAULT 0;
+	SET error_message = 'Success';
+    
+	IF prof_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
+        SET error_message = 'Username must be alphanumeric';
+        LEAVE check_prof_login;
+	END IF;
     
 	SELECT COUNT(*) INTO user_count
 	FROM Professor
 	WHERE ProfNetID = prof_input_username AND ProfPassword = prof_input_password;
     
-    SELECT user_count AS user_count_result;
-END //
-
-
--- Procedure to change student password
--- Input: Student Net ID, Old Password, New Password
--- Output: 0 if the password was changed, 1 if it was not
-CREATE PROCEDURE change_professor_password (
-	IN prof_username varchar(20),
-    IN old_professor_password varchar(20),
-    IN new_professor_password varchar(20))
-BEGIN
-	DECLARE user_count INT;
-    SELECT COUNT(*) INTO user_count
-    FROM Professor
-    WHERE ProfNetID = prof_username AND ProfPassword = old_professor_password;
-    
-    IF user_count > 0 THEN 
-		UPDATE Professor
-		SET ProfPassword = new_professor_password
-		WHERE ProfNetID = prof_username;
-		SELECT 0 AS password_change_status;
-	ELSE 
-		SELECT 1 AS password_change_status;
+    IF user_count < 1 THEN 
+		SET error_message = 'Incorrect username or password';
+        LEAVE check_prof_login;
 	END IF;
 END //
 
 
+-- Procedure to change student password
+-- Input: Student Net ID, Old Password, New Password, @Variable to hold get the error message
+-- Output: Error Message: 'Success" or the condition that was not met
+CREATE PROCEDURE change_professor_password (
+	IN prof_username varchar(20),
+    IN old_professor_password varchar(20),
+    IN new_professor_password varchar(20),
+    OUT error_message varchar(100))
+prof_change_pass: BEGIN
+	DECLARE user_count INT;
+    SET error_message = 'Success';
+    
+	IF prof_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
+        SET error_message = 'Username must be alphanumeric';
+        LEAVE prof_change_pass;
+	END IF;
+    
+    SELECT COUNT(*) INTO user_count
+    FROM Professor
+    WHERE ProfNetID = prof_username AND ProfPassword = old_professor_password;
+    
+    IF user_count < 1 THEN 
+		SET error_message = 'Incorrect username or password';
+        LEAVE prof_change_pass;
+	ELSEIF old_professor_password = new_professor_password THEN 
+		SET error_message = 'Password cannot be the same';
+        LEAVE prof_change_pass;
+	END IF;
+    
+	UPDATE Professor
+	SET ProfPassword = new_professor_password
+	WHERE ProfNetID = prof_username;
+
+END //
+
+
 -- Procedure for the professor to create a new criteria, but only if they teach the class
--- Input: Professor NetID, Section Code, Criteria Name, Criteria Description
--- Output:0 if the criteria added correctly, 1 if it was not
+-- Input: Professor NetID, Section Code, Criteria Name, Criteria Description,  Review Type, @Variable to get error status
+-- Output: Error Message: 'Success' or condition that was not met
 CREATE PROCEDURE professor_create_criteria (
 	IN professor_netID char(9),
     IN section_code char(5),
     IN criteria_name varchar(35),
-    IN criteria_description varchar(300))
-BEGIN
-	DECLARE professor_teaches INT;
-    DECLARE insert_status INT;
+    IN criteria_description varchar(300),
+    IN review_type char(7),
+    OUT error_message varchar(100))
+create_criteria:BEGIN
+	DECLARE professor_teaches INT DEFAULT 0;
+    DECLARE criteria_name_count INT DEFAULT 0;
+    SET error_message = 'Success';
     
-    SELECT COUNT(*) INTO professor_teaches
-    FROM Teaches
-    WHERE ProfNetID = professor_netID AND SecCode = section_code;
     
-    IF professor_teaches > 0 THEN
-		INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription)
-        VALUES (section_code, criteria_name, criteria_description);
-        SELECT 0 AS insert_status;
-	ELSE
-		SELECT 1 AS insert_status;
-    END IF;
+    IF NOT EXISTS (SELECT * FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code)THEN 
+		SET error_message = 'Can only create criteria for your class';
+        LEAVE create_criteria;
+	ELSEIF EXISTS (SELECT * FROM Criteria WHERE CriteriaName = criteria_name AND SecCode = section_code AND ReviewType = review_type) THEN 
+		SET error_message = 'Cannot have the same name as an existing criteria of this type';
+        LEAVE create_criteria;
+	END IF;
+    
+	INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription, ReviewType)
+	VALUES (section_code, criteria_name, criteria_description, review_type);
+
 END //
 
 
@@ -308,7 +372,7 @@ BEGIN
 	SELECT Stu.StuNetID, Stu.StuName, C.CriteriaName, AVG(Sc.Score) AS AverageScore
     FROM Scored Sc
     JOIN PeerReview PR ON Sc.ReviewID = PR.ReviewID AND Sc.SecCode = PR.SecCode
-    JOIN Criteria C ON Sc.CriteriaID = C.CriteriaID AND Sc.SecCode = C.SecCode
+    JOIN Criteria C ON Sc.CriteriaID = C.CriteriaID AND Sc.SecCode = C.SecCode AND C.ReviewType = PR.ReviewType
     JOIN Student Stu ON PR.ReviewerID = Stu.StuNetID
     JOIN Attends A ON A.StuNetID = PR.ReviewerID AND A.SecCode = PR.SecCode
     JOIN Teaches T ON T.SecCode = A.SecCode AND T.ProfNetID = professor_netID
@@ -331,7 +395,7 @@ BEGIN
     C.CriteriaName, Sc.Score
     FROM Scored Sc
     JOIN PeerReview PR ON Sc.ReviewID = PR.ReviewID AND Sc.SecCode = PR.SecCode
-    JOIN Criteria C ON Sc.CriteriaID = C.CriteriaID AND Sc.Seccode = C.SecCode
+    JOIN Criteria C ON Sc.CriteriaID = C.CriteriaID AND Sc.Seccode = C.SecCode AND C.ReviewType = PR.ReviewType
     JOIN Reviewed R ON Sc.ReviewID = R.ReviewID AND Sc.SecCode = R.SecCode
     JOIN Student Stu ON R.StuNetID = Stu.StuNetID
     JOIN Student Reviewer ON PR.ReviewerID = Reviewer.StuNetID
@@ -348,22 +412,37 @@ END //
 CREATE PROCEDURE create_peer_reviews (
 	IN professor_netID char(9),
     IN section_code char(5),
-    IN review_type char(7))
-BEGIN 
-	DECLARE creation_status INT DEFAULT 1;
+    IN review_type char(7),
+    OUT error_message varchar(100))
+creating_peer_reviews:BEGIN 
     DECLARE student_id char(9);
     DECLARE done INT DEFAULT 0;
     DECLARE team_num INT DEFAULT 0;
-    
     DECLARE student_cursor CURSOR FOR 
 		SELECT StuNetID FROM Attends
 		WHERE SecCode = section_code;
-        
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET error_message = 'Success';
     
-    -- If the professor does not teach the class they cannot create the peer review
-    IF ( SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
-		SELECT creation_status;
+    -- Checking certain criteria for before creating the peer reviews
+    IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
+		SET error_message = 'Can only create peer reviews for classes you teach';
+        LEAVE creating_peer_reviews;
+	ELSEIF NOT EXISTS (SELECT * FROM Attends WHERE SecCode = section_code) THEN 
+		SET error_message = 'No students currently in this section';
+        LEAVE creating_peer_reviews;
+	ELSEIF NOT EXISTS (SELECT * FROM Criteria WHERE SecCode = section_code AND ReviewType = review_type) THEN 
+		SET error_message = 'No criteria for this section currently';
+        LEAVE creating_peer_reviews;
+	ELSEIF NOT EXISTS (SELECT * FROM MemberOf WHERE SecCode = section_code) THEN 
+		SET error_message = 'No students on teams for this section currently';
+        LEAVE creating_peer_reviews;
+	ELSEIF (SELECT COUNT(*) FROM Student S LEFT JOIN MemberOf M ON S.StuNetID = M.StuNetID WHERE M.TeamNum IS NULL) > 0 THEN 
+		SET error_message = 'There are students who are not on a team';
+        LEAVE creating_peer_reviews;
+	ELSEIF EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND ReviewType = review_type) THEN 
+		SET error_message = 'Peer Reviews of this type already exist';
+        LEAVE creating_peer_reviews;
 	END IF;
     
     -- Iterating through every student in the section 
@@ -375,14 +454,10 @@ BEGIN
 		END IF;
            
 		SET team_num = (SELECT TeamNum FROM MemberOf WHERE StuNetID = student_id AND SecCode = section_code);
-		CALL insert_peer_reviews(student_id, team_num, review_type, section_code);
+		CALL insert_peer_reviews(student_id, team_num, review_type, section_code, @errormessage);
         
 	END LOOP student_loop;
 	CLOSE student_cursor;
-    
-    SET creation_status = 0;
-    SELECT creation_status;
-    
 
 END //
 
@@ -391,21 +466,18 @@ CREATE PROCEDURE insert_peer_reviews (
 	IN student_id char(9),
     IN team_num INT,
     IN review_type char(7),
-    IN section_code char(5) )
-BEGIN 
-	DECLARE creation_status INT DEFAULT 1;
+    IN section_code char(5))
+inserting_peer_and_scored: BEGIN 
     DECLARE other_student char(9);
     DECLARE done_member INT DEFAULT 0;
     DECLARE done_criteria INT DEFAULT 0;
     DECLARE last_reviewID INT;
     DECLARE criteria_id INT;
-    
     DECLARE member_cursor CURSOR FOR 
 		SELECT StuNetID FROM MemberOf
         WHERE SecCode = section_code AND TeamNum = team_num;
-        
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done_member = 1;
-     
+	
 	-- Based on the student selected in the previous section, iterates through everyone in the same group as them
 	SET done_member = 0;
 	OPEN member_cursor;
@@ -426,7 +498,7 @@ BEGIN
         INSERT INTO Reviewed (StuNetID, ReviewID, SecCode)
         VALUES (student_id, last_reviewID, section_code);
         
-        CALL insert_scored_table(last_reviewID, section_code);
+        CALL insert_scored_table(last_reviewID, review_type, section_code);
         
 	END LOOP member_loop;
     CLOSE member_cursor;
@@ -435,16 +507,16 @@ END//
 -- Sub Procedure of the create_peer_reviews Procedure
 CREATE PROCEDURE insert_scored_table (
 	IN review_id INT,
+    IN review_type char(7),
     IN section_code char(5))
     
 BEGIN 
-	DECLARE creation_status INT DEFAULT 1;
     DECLARE criteria_id INT;
     DECLARE done_criteria INT DEFAULT 0;
     
 	DECLARE criteria_cursor CURSOR FOR 
 		SELECT CriteriaID FROM Criteria
-        WHERE SecCode = section_code;
+        WHERE SecCode = section_code AND ReviewType = review_type;
 	
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done_criteria = 1;
 
@@ -468,15 +540,16 @@ END//
 
 
 -- Procedure to retrieve the peer review criteria for a given professor's given section
--- Input: Professor NetID, Section Code
+-- Input: Professor NetID, Section Code, Review Type
 -- Output: For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
 CREATE PROCEDURE get_section_criteria(
     IN prof_netID char(9),
-    IN section_code char(5))
+    IN section_code char(5),
+    IN review_type char(7))
 BEGIN
     SELECT *
     FROM professor_peer_review_criteria
-    WHERE ProfNetID = prof_netID AND SecCode = section_code;
+    WHERE ProfNetID = prof_netID AND SecCode = section_code AND ReviewType = review_type;
 END //
 
 
@@ -511,25 +584,34 @@ END //
 
 
 -- Procedure to edit the scores that a student gave to a different student
--- Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score
--- Outputs: 0 if altered corretly, 1 if was not
+-- Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, Reiew Type, @Variable for error message
+-- Outputs: Error Message: 'Success' or condition that was not met
 CREATE PROCEDURE edit_scores_given (
 	IN professor_netID char(9),
     IN section_code char(5),
     IN reviewer_netID char(9),
     IN reviewee_netID char(9),
     IN criteria_name varchar(35),
-    IN new_score INT)
-BEGIN 
-	DECLARE edit_status INT DEFAULT 1;
+    IN new_score INT,
+    IN review_type char(7),
+    OUT error_message varchar(100))
+edit_score: BEGIN 
     DECLARE criteria_id INT;
     DECLARE review_id INT;
+    SET error_message = 'Success';
     
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SELECT edit_status;
+		SET error_message = 'Can only edit scores for your classes';
+        LEAVE edit_score;
+	ELSEIF (new_score > 5) OR (new_score < 0) THEN 
+		SET error_message = 'Score must be between 0 and 5';
+        LEAVE edit_score;
+	ELSEIF (SELECT COUNT(*) FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name AND ReviewType = review_type ) < 1 THEN
+		SET error_message = 'Criteria does not exist for this section or review type';
+        LEAVE edit_score;
 	END IF;
     
-    SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name);
+    SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name AND ReviewType = review_type);
     SET review_id = (SELECT pr.ReviewID FROM PeerReview pr JOIN Reviewed r
 		ON pr.ReviewID = r.ReviewID AND pr.SecCode = r.SecCode
 		WHERE pr.SecCode = section_code AND pr.ReviewerID = reviewer_netID AND r.StuNetID = reviewee_netID ); 
@@ -537,26 +619,27 @@ BEGIN
     UPDATE Scored
     SET Score = new_score
     WHERE CriteriaID = criteria_id AND SecCode = section_code AND ReviewID = review_id;
-    
-    SELECT 0 AS edit_status;
-    
 
 END //
 
 
-
 -- Procedure to insert the correct number of teams for a section 
--- Inputs: Professor NetID, Section Code, Number of Teams for section
--- Outputs: 0 if the teams were inserted correctly, 1 if they were not
+-- Inputs: Professor NetID, Section Code, Number of Teams for section, @Variable for error message
+-- Outputs: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE professor_insert_num_teams (
 	IN professor_netID char(9),
 	IN section_code char(5),
-    IN num_teams INT)
-BEGIN 
-	DECLARE insertion_status INT DEFAULT 1;
+    IN num_teams INT,
+    OUT error_message varchar(100))
+insert_teams: BEGIN 
+	SET error_message = 'Success';
     
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
-		SELECT insertion_status;
+		SET error_message = 'Can only enter teams for your classes';
+        LEAVE insert_teams;
+	ELSEIF num_teams < 1 THEN 
+		SET error_message = 'Number of teams must be at least 1';
+        LEAVE insert_teams;
 	END IF;
         
 	insertion_loop: LOOP
@@ -568,24 +651,26 @@ BEGIN
 			LEAVE insertion_loop;
 		END IF;
     END LOOP insertion_loop;
-	SET insertion_status = 0;
-    SELECT insertion_status;
 END //
 
 
-
 -- Procedure to Delete a team from the database, will remove all of the students from the team first 
--- Inputs: Professor NetID, Section Code, Team Num
--- Outputs: 0 if the deletion was successful, 1 if it was not
+-- Inputs: Professor NetID, Section Code, Team Num, @Variable for error message
+-- Outputs: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE professor_delete_team (
 	IN professor_netID char(9),
     IN section_code char(5),
-    IN team_num INT)
-BEGIN 
-	DECLARE deletion_status INT DEFAULT 1;
+    IN team_num INT,
+    OUT error_message varchar(100))
+team_deletion:BEGIN 
+	SET error_message = 'Success';
     
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
-		SELECT insertion_status;
+		SET error_message = 'Can only delete from your sections';
+        LEAVE team_deletion;
+	ELSEIF (SELECT COUNT(*) FROM Team WHERE TeamNum = team_num AND SecCode = section_Code) < 1 THEN 
+		SET error_message = 'Team does not exist for this section';
+        LEAVE team_deletion;
 	END IF;
     
     DELETE FROM MemberOf
@@ -593,108 +678,117 @@ BEGIN
     
     DELETE FROM Team
     WHERE TeamNum = team_num AND SecCode = section_code;
-    
-    SELECT 0 AS deletion_status;
-	
 END //
 
 
 
 -- Procedure to get the CriteriaID and info for a section before it it edited
--- Input: Professor NetID, Section Code
+-- Input: Professor NetID, Section Code, Review Type, @Variable for error message
 -- Output: CriteriaId, Criteria Name, Criteria Description
 CREATE PROCEDURE get_section_criteriaid(
     IN professor_netID char(9),
-    IN section_code char(5))
-BEGIN
-	DECLARE retrieval_status INT DEFAULT 1;
+    IN section_code char(5),
+    IN review_type char(7),
+    OUT error_message varchar(100))
+get_criteriaid: BEGIN
+	SET error_message = 'Success';
     
     IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SELECT retrieval_status;
+		SET error_message = 'Can only retrieve information about your class';
+        LEAVE get_criteriaid;
+	ELSEIF NOT EXISTS (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND ReviewType = review_type) THEN 
+		SET error_message = 'Criteria does not exist for either this section of this review type';
+        LEAVE get_criteriaid;
 	END IF;
     
     SELECT CriteriaID, CriteriaName, CriteriaDescription
     FROM Criteria
-    WHERE SecCode = section_code;
-    
+    WHERE SecCode = section_code AND ReviewType = review_type;
 END //
 
 
 -- Procedure to edit the criteria
--- Input: Professor NetID, Section Code, CriteriaID, Updated Criteria Name, updated Criteria Description
--- Output: 0 if it was edited correctly, 1 if it was not
+-- Input: Professor NetID, Section Code, CriteriaID, Updated Criteria Name, updated Criteria Description, Review Type, @Variable for error message
+-- Output: Error Message: 'Success' or condition that was not met
 CREATE PROCEDURE professor_edit_criteria (
 	IN professor_netID char(9),
 	IN section_code char(5), 
     IN criteria_id INT, 
     IN criteria_name varchar(35),
-    IN criteria_description varchar(300))
-BEGIN
-	DECLARE alter_status INT DEFAULT 1;
+    IN criteria_description varchar(300), 
+    IN review_type char(7),
+    OUT error_message varchar(100))
+edit_criteria: BEGIN
+	SET error_message = 'Success';
     
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SELECT retrieval_status;
+		SET error_message = 'Can only edit criteria for your section';
+        LEAVE edit_criteria;
+	ELSEIF NOT EXISTS (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND ReviewType = review_type) THEN 
+		SET error_message = 'Criteria either does not exist for this section or this review type';
+        LEAVE edit_criteria;
 	END IF;
-    
     
     UPDATE Criteria
     SET CriteriaName = criteria_name, CriteriaDescription = criteria_description
     WHERE CriteriaID = criteria_id;
-    
-    SELECT 0 AS alter_status;
 
 END //
 
 -- Procedure to allow a professor to delete a criteria 
--- Inputs: Professor NetID, Section Code, Criteria Name
--- Outputs: 0 if it was deleted correctly, 1 if it was not
+-- Inputs: Professor NetID, Section Code, Criteria Name, Rview Type, @Variable for error message
+-- Outputs: Error Message: 'Success" or condition not met
 -- Disclaimer: Cannot delete a criteria that has been used to create the Peer Reviews and Scored Table
 CREATE PROCEDURE professor_delete_criteria (
 	IN professor_netID char(9),
     IN section_code char(5),
-    IN criteria_name varchar(35))
+    IN criteria_name varchar(35), 
+    IN review_type char(7),
+    OUT error_message varchar(100))
 criteria_deletion:BEGIN 
-	DECLARE deletion_status INT DEFAULT 1;
+	SET error_message = 'Success';
     
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SELECT change_status;
-	END IF;
-    
-    IF EXISTS (SELECT * FROM Scored WHERE CriteriaName = criteria_name AND SecCode = section_code) THEN 
-		SELECT change_status;
+		SET error_message = 'Can only delete criteria from your section';
+        LEAVE criteria_deletion;
+    ELSEIF EXISTS (SELECT * FROM Scored WHERE CriteriaName = criteria_name AND SecCode = section_code AND ReviewType = review_type) THEN 
+		SET error_message = 'Criteria already being used for this review type, cannot delete';
         LEAVE criteria_deletion;
 	END IF;
     
     DELETE FROM Criteria
-    WHERE CriteriaName = criteria_name AND SecCode = section_code;
-    
-    SELECT 0 AS deletion_status;
-
+    WHERE CriteriaName = criteria_name AND SecCode = section_code AND ReviewType = review_type;
 
 END //
 
 
 -- Procedure to allow the professor to change a student's team number
--- Input: Professor NetID, Section Code, Student NetID, New Team Number
--- Output: 0 if the team was changed correctly, 1 if it was not
+-- Input: Professor NetID, Section Code, Student NetID, New Team Number, @Variable for error message
+-- Output: Error Message: 'Success' or condition not met
 CREATE PROCEDURE professor_change_student_team(
 	IN professor_netID char(9),
     IN section_code char(5),
     IN student_netID char(9),
-    IN new_team INT)
-BEGIN
-	DECLARE change_status INT DEFAULT 1;
+    IN new_team INT, 
+    OUT error_message varchar(100))
+change_team:BEGIN
 	DECLARE old_team INT;
+    SET error_message = 'Success';
     
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SELECT change_status;
+		SET error_message = 'Can only alter teams in your section';
+        LEAVE change_team;
+	ELSEIF NOT EXISTS (SELECT StuNetID FROM Attends WHERE StuNetID = student_netID AND SecCode = section_code) THEN 
+		SET error_message = 'Student not found in this section';
+        LEAVE change_team;
+	ELSEIF NOT EXISTS (SELECT TeamNum FROM Team WHERE SecCode = section_code AND TeamNum = team_num) THEN 
+		SET error_message = 'New team does not exist';
+        LEAVE change_team;
 	END IF;
     
     UPDATE MemberOf 
     SET TeamNum = new_team
     WHERE SecCode = section_code AND StuNetID = student_netID;
-
-	SELECT 0 AS change_status;
 
 END //
 
