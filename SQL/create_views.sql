@@ -47,3 +47,14 @@ JOIN PeerReview PR ON PR.ReviewID = R.ReviewID
 JOIN Scored Sc ON Sc.ReviewID = PR.ReviewID
 JOIN Criteria C ON C.CriteriaID = Sc.CriteriaID
 JOIN MemberOf M ON M.StuNetID = S.StuNetID;
+
+
+-- View for all timeslots of all students in all sections of all professors
+CREATE VIEW professor_student_timeslots AS
+SELECT P.ProfNetID, Sec.SecCode, S.StuNetID, T.TSDate, T.TSDescription, T.TSDuration
+FROM Professor P 
+JOIN Teaches Te ON Te.ProfNetID = P.ProfNetID
+JOIN Section Sec ON Sec.SecCode = Te.SecCode
+JOIN Attends A ON A.SecCode = Sec.SecCode
+JOIN Student S ON S.StuNetID = A.StuNetID
+JOIN Timeslot T ON T.StuNetID = S.StuNetID;
