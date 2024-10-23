@@ -8,17 +8,12 @@
 
   - **student_team_and_section** : Creates view for the team number and section code of all students in the system
 
+  - **student_scores_received** : Creates view for all scores that all students received in all sections (for all criteria)
 
 ## General
 
 
 ## Professor 
-
-  - **professor_sections** : Creates view for all sections of all professors in the system
-
-  - **professor_students** : Creates view for all students in all teams of all sections of all professors in the system
-
-  - **professor_peer_review_criteria** : Creates view for all criteria categories for all sections of all professors in the system
 
   - **professor_student_scores** : Creates view for all scores that all students received in all sections of all professors in the system
 
@@ -48,17 +43,21 @@
       - *Inputs:* Student NetID, Timeslot Date  ('YYYY-MM-DD'), @Variable to hold status/ error message 
       - *Outputs:* Message: either 'Success' or condition that was not met
   
-  - **student_insert_score**: Inserts the score for a peer review that a student gave
+  - **student_insert_score** : Inserts the score for a peer review that a student gave
       - *Inputs:* Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, Score, @Variable to hold status/ error message 
       - *Outputs:* Message: either 'Success' or condition that was not met
 
-  - **student_get_peer_review_criteria**: Retrieves the peer review criteria for a particular student and section (given the review type)
+  - **student_get_peer_review_criteria** : Retrieves the peer review criteria for a particular student and section (given the review type)
       - *Inputs:* Student NetID, Review Type (Midterm or Final), Section Code
       - *Outputs:* For all criteria: Criteria Name, Criteria Description
 
-  - **student_get_team_members**: Retrieves the team members of a particular team in a specific section
+  - **student_get_team_members** : Retrieves the team members of a particular team in a specific section
       - *Inputs:* Team Number, Section Code
       - *Outputs:* For all team members: Student Name, Student NetID
+
+  - **student_view_averages** : Retrieves the average score that a student received for each criteria 
+      - *Inputs:* Student NetID, Section Code, Review Type
+      - *Outputs:* For all criteria of a particular review type: Criteria Name, Average Score
 
   
 ## General
@@ -120,21 +119,13 @@
       - **_Creation Disclamer:_** For this one it creates a lot of entries for the PeerReviews, Reviewed, and Scored Tables which would be extremely difficult to try and remove. So if when the professor is choosing to create the peer reviews we should display a 'Are you sure you want to do this? Once these Peer Reviews have been created, the Peer Reviews and Criteria cannot be altered or deleted unless all associated Peer Reviews and Scores data is deleted' Or something along those lines if that seems feasible.  
       - *Working With load.sql:* This initializes all of the scores to 0, so if you want to test the scores and averages don't use this procedure and just use the data in load.sql. However if you want to test this procedure then you would comment out the PeerReview, Reviewed, and Scored insertions in load.sql.
 
-  - **professor_view_averages** : Allows the professor to view the average score given to each student based on the criteria  
-      - *Inputs:* Professor NetID, Section Code, Review Type (Midterm or Final)  
-      - *Outputs:* Pulls the student averages for each criteria
+  - **professor_view_averages** : Allows the professor to view the average score given to a particular student based on a specific criteria  
+      - *Inputs:* Professor NetID, Student NetID, Section Code, Review Type (Midterm or Final)  
+      - *Outputs:* For each criteria: Criteria Name and Average Score
 
-  - **change_view_individual_scores** : Allows the professor to view the individual scores the student received  
+  - **professor_view_individual_scores** : Allows the professor to view the individual scores the student received  
       - *Inputs:* Professor NetID, Section Code, Student NetID, Review Type (Midterm or Final)  
       - *Outputs:* Reviewer NetID, Reviewer Name, Criteria Name, and Score
-
-  - **get_student_scores_received** : Pulls all of the scores that a student was given from their team members and themselves
-      - *Inputs:* Professor NetID, Section Code, Reviewee NetID, Review Type
-      - *Outputs:* Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
- 
-  - **get_student_scores_given** : Pulls all of the scores that a student gave to all of their team members and themselves
-      - *Inputs:* Professor NetID, Section Code, Student NetID, Review Type
-      - *Outputs:* Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
 
   - **edit_scores_given** : Allows the professor to go in and change a score that was given for a student
       - *Inputs:* Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, Review Type, , @Variable to hold status/ error message 
