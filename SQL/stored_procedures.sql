@@ -234,7 +234,7 @@ END //
 CREATE PROCEDURE student_get_peer_review_criteria (
     IN stu_netID char(9),
     IN review_type char(7),
-    IN section_code char(5),)
+    IN section_code char(5))
 BEGIN
     SELECT CriteriaName, CriteriaDescription
     FROM student_peer_review_criteria
