@@ -152,3 +152,7 @@
   - **professor_change_student_team** : Allows the professor to switch a student to a different Team
       - *Inputs:* Professor NetID, Section Code, Student NetID, New Team Number, @Variable to hold status/ error message 
       - *Outputs:* Message: either 'Success' or condition that was not met
+   
+  - **reuse_criteria** : Allows the professor to reuse the criteria from a previous Review Type for a new Review Type
+      - *Inputs:* Professor NetID, Section Code, Old Criteria Type, New Criteria Type, @Variable to hold status/ error message
+      - *Outputs:* Message: 'Success' or the condition that was not met
