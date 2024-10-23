@@ -17,6 +17,8 @@
 
   - **professor_student_scores** : Creates view for all scores that all students received in all sections of all professors in the system
 
+  - **professor_student_timeslots** : Creates view for all students' timeslots in all professors' sections
+
 
 # Description of the Procedures:
 
