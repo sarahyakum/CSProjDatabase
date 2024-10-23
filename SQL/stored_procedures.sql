@@ -820,5 +820,53 @@ change_team:BEGIN
 
 END //
 
+-- Procedure to allow the professor to reuse the criteria from a previous review for a new review
+-- Input: Professor NetID, Section Code, Old Criteria Type, New Criteria Type, @Variable for error message
+-- Output: Message: 'Success' or condition that was not met
+CREATE PROCEDURE reuse_criteria (
+	IN professor_netID char(9),
+    IN section_code char(5),
+    IN old_criteria_type char(7),
+    IN new_criteria_type char(7),
+    OUT error_message varchar(100))
+keep_criteria_same: BEGIN 
+	DECLARE criteria_id INT;
+    DECLARE criteria_name varchar(35);
+    DECLARE criteria_description varchar(300);
+	DECLARE done_criteria INT DEFAULT 0;
+	DECLARE criteria_cursor CURSOR FOR 
+		SELECT CriteriaID FROM Criteria
+        WHERE SecCode = section_code AND ReviewType = old_criteria_type;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done_criteria = 1;
+    SET error_message = 'Success';
+    
+	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
+		SET error_message = 'Can only select criteria from your section';
+        LEAVE keep_criteria_same;
+	ELSEIF NOT EXISTS (SELECT * FROM Criteria WHERE SecCode = section_code AND ReviewType = old_criteria_type) THEN 
+		SET error_message = 'No previous criteria to select';
+        LEAVE keep_criteria_same;
+	ELSEIF old_criteria_type = new_criteria_type THEN 
+		SET error_message = 'Cannot have the same review type';
+        LEAVE keep_criteria_same;
+	END IF;
+    
+    OPEN criteria_cursor;
+    criteria_loop: LOOP
+		FETCH criteria_cursor INTO criteria_id;
+		IF done_criteria THEN
+			LEAVE criteria_loop;
+		END IF;
+        
+        SET criteria_name = (SELECT CriteriaName FROM Criteria WHERE CriteriaID = criteria_id AND SecCode = section_code AND ReviewType = old_criteria_type);
+        SET criteria_description = (SELECT CriteriaDescription FROM Criteria WHERE CriteriaID = criteria_id AND SecCode = section_code AND ReviewType = old_criteria_type);
+        
+        INSERT INTO Criteria(Seccode, CriteriaName, CriteriaDescription, ReviewType)
+        VALUES (section_code, criteria_name, criteria_description, new_criteria_type);
+    
+	END LOOP criteria_loop;
+	CLOSE criteria_cursor;
+END //
+
 
 DELIMITER ;
