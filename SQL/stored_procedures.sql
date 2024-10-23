@@ -296,6 +296,21 @@ inserting_score: BEGIN
 END //
 
 
+-- Procedure to get the average score that a student received for each criteria (given the review type)
+-- Input: Student NetID, Section Code, Review Type (Midterm or Final)
+-- Output: For each criteria: Criteria Name and Average Score
+CREATE PROCEDURE student_view_averages (
+    IN stu_netID char(9),
+    IN section_code char(5),
+    IN review_type char(7))
+BEGIN
+    SELECT CriteriaName, AVG(Score) AS AvgScore
+    FROM student_scores_received
+    WHERE StuNetID = stu_netID AND SecCode = section_code AND ReviewType = review_type
+    GROUP BY CriteriaName;
+END //
+
+
 -- Procedure to check whether the professor's attempted username and password are in the system
 -- Input: Professor username, Professor password, @Variable to get the error message
 -- Output: Error Message: 'Success' or 'Incorrect username or password'
@@ -389,24 +404,19 @@ create_criteria:BEGIN
 END //
 
 
--- Procedure to allow the professor to view the student's averages in his sections
--- Input: Professor Net ID, Section Code, Review Type
--- Output: Pulls the student averages for each criteria
+-- Procedure to allow the professor to view a student's average scores received for a review type
+-- Input: Professor NetID, Student NetID, Section Code, Review Type
+-- Output: For each criteria: Criteria Name and Average Score
 CREATE PROCEDURE professor_view_averages (
-	IN professor_netID char(9),
+	IN prof_netID char(9),
+    IN stu_netID char(9),
     IN section_code char(5),
     IN review_type char(7))
 BEGIN
-	SELECT Stu.StuNetID, Stu.StuName, C.CriteriaName, AVG(Sc.Score) AS AverageScore
-    FROM Scored Sc
-    JOIN PeerReview PR ON Sc.ReviewID = PR.ReviewID AND Sc.SecCode = PR.SecCode
-    JOIN Criteria C ON Sc.CriteriaID = C.CriteriaID AND Sc.SecCode = C.SecCode AND C.ReviewType = PR.ReviewType
-    JOIN Student Stu ON PR.ReviewerID = Stu.StuNetID
-    JOIN Attends A ON A.StuNetID = PR.ReviewerID AND A.SecCode = PR.SecCode
-    JOIN Teaches T ON T.SecCode = A.SecCode AND T.ProfNetID = professor_netID
-    WHERE PR.SecCode = section_code AND PR.ReviewType = review_type
-    GROUP BY Stu.StuNetID, Stu.StuName, C.CriteriaName
-    ORDER BY Stu.StuNetID, C.CriteriaName;
+    SELECT CriteriaName, AVG(Score) AS AvgScore
+    FROM professor_student_scores
+    WHERE ProfNetID = prof_netID AND RevieweeNetID = stu_netID AND SecCode = section_code AND ReviewType = review_type
+    GROUP BY CriteriaName;
 END //
 
 
@@ -564,51 +574,6 @@ BEGIN
 	CLOSE criteria_cursor;
 
 END//
-
-
-
--- Procedure to retrieve the peer review criteria for a given professor's given section
--- Input: Professor NetID, Section Code, Review Type
--- Output: For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
-CREATE PROCEDURE get_section_criteria(
-    IN prof_netID char(9),
-    IN section_code char(5),
-    IN review_type char(7))
-BEGIN
-    SELECT *
-    FROM professor_peer_review_criteria
-    WHERE ProfNetID = prof_netID AND SecCode = section_code AND ReviewType = review_type;
-END //
-
-
--- Procedure for a professor to retrieve the scores that a specific student in a specific section received from all team members (for all criteria)
--- Input: Professor NetID, Section Code, Reviewee NetID, Review Type ("Midterm" or "Final")
--- Output: Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
-CREATE PROCEDURE get_student_scores_received(
-    IN prof_netID char(9),
-    IN section_code char(5),
-    IN stu_netID char(9),
-    IN review_type char(7))
-BEGIN
-    SELECT *
-    FROM professor_student_scores
-    WHERE ProfNetID = prof_netID AND SecCode = section_Code AND RevieweeNetID = stu_netID AND ReviewType = review_type;
-END //
-
-
--- Procedure for a professor to retrieve the scores that a specific student in a specific section gave to all team members (for all criteria)
--- Input: Professor NetID, Section Code, Reviewer NetID, Review Type ("Midterm" or "Final")
--- Output: Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
-CREATE PROCEDURE get_student_scores_given(
-    IN prof_netID char(9),
-    IN section_code char(5),
-    IN stu_netID char(9),
-    IN review_type char(7))
-BEGIN
-    SELECT *
-    FROM professor_student_scores
-    WHERE ProfNetID = prof_netID AND SecCode = section_Code AND ReviewerNetID = stu_netID AND ReviewType = review_type;
-END //
 
 
 -- Procedure to edit the scores that a student gave to a different student
