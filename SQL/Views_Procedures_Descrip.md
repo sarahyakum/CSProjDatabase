@@ -4,7 +4,7 @@
 
   - **student_timeslots** : Creates view for all timeslots of all students in the system
 
-  - **student_peer_review_criteria** : Creates view for all criteria categories for all students in the system
+  - **student_peer_review_criteria** : Creates view for all criteria categories for all students in the system (for each section and review type)
 
   - **student_team_and_section** : Creates view for the team number and section code of all students in the system
 
@@ -19,6 +19,8 @@
   - **professor_students** : Creates view for all students in all teams of all sections of all professors in the system
 
   - **professor_peer_review_criteria** : Creates view for all criteria categories for all sections of all professors in the system
+
+  - **professor_student_scores** : Creates view for all scores that all students received in all sections of all professors in the system
 
 
 # Description of the Procedures:
@@ -41,14 +43,22 @@
   - **student_edit_timeslot** : Allows the student to edit the description or duration of a timeslot. Must be within past three days, not in the future, and the description must remain longer than 30 characters.
       - *Inputs:* Student NetID, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Duration, @Variable to hold status/ error message 
       - *Outputs:* Message: either 'Success' or condition that was not met
-   
- -  **student_delete_timeslot** : Allows the student to delete a timeslot as long as it is within the last 3 days
+  
+  -  **student_delete_timeslot** : Allows the student to delete a timeslot as long as it is within the last 3 days
       - *Inputs:* Student NetID, Timeslot Date  ('YYYY-MM-DD'), @Variable to hold status/ error message 
       - *Outputs:* Message: either 'Success' or condition that was not met
   
-- **student_insert_score**: Inserts the score for a peer review that a student gave
-    - *Inputs:* Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, Score, @Variable to hold status/ error message 
-    - *Outputs:* Message: either 'Success' or condition that was not met
+  - **student_insert_score**: Inserts the score for a peer review that a student gave
+      - *Inputs:* Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, Score, @Variable to hold status/ error message 
+      - *Outputs:* Message: either 'Success' or condition that was not met
+
+  - **student_get_peer_review_criteria**: Retrieves the peer review criteria for a particular student and section (given the review type)
+      - *Inputs:* Student NetID, Review Type (Midterm or Final), Section Code
+      - *Outputs:* For all criteria: Criteria Name, Criteria Description
+
+  - **student_get_team_members**: Retrieves the team members of a particular team in a specific section
+      - *Inputs:* Team Number, Section Code
+      - *Outputs:* For all team members: Student Name, Student NetID
 
   
 ## General
@@ -64,6 +74,7 @@
   - **student_timeslot_by_date** : Retrieves all timeslots for a student on a given date
       - *Inputs:* Student NetID, Timeslot Date
       - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
+      - Note: This procedure, along with student_timeslot_by_week/month, would ideally be used in displaying the timeslots in calendar view in the student web app
 
   - **student_timeslot_by_week** : Retrieves all timeslots for a student in a 7 day window (given start date)
       - *Inputs:* Student NetID, Start Date
