@@ -149,3 +149,15 @@
   - **reuse_criteria** : Allows the professor to reuse the criteria from a previous Review Type for a new Review Type
       - *Inputs:* Professor NetID, Section Code, Old Criteria Type, New Criteria Type, @Variable to hold status/ error message
       - *Outputs:* Message: 'Success' or the condition that was not met
+
+  - **professor_get_sections** : Retrieves all sections that a given professor teaches
+      - *Inputs:* Professor NetID
+      - *Outputs:* Section Code and Section Name, for all sections
+
+  - **professor_get_daily_timeslot_hours** : Calculates the total duration for a student on a given day
+      - *Inputs:* Professor NetID, Student NetID, Section Code, Date (YYYY-MM-DD)
+      - *Outputs:* Total number of hours tracked for that day (HH:MM)
+      
+  - **professor_get_cumulative_hours** : Calculates the cumulative duration for all timeslots of a student 
+      - *Inputs:* Professor NetID, Student NetID, Section Code
+      - *Outputs:* Cumulative number of hours tracked across all timeslots
