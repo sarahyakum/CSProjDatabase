@@ -87,73 +87,68 @@
 
 ## Professor 
 
- - **check_professor_login** : Checks the professor's inputted login information to see if it exists in the system  
-    - *Inputs:* Inputted username, Inputted Password, @Variable to hold status/ error message   
-    - *Outputs:* Message: either 'Success' or condition that was not met
+  - **check_professor_login** : Checks the professor's inputted login information to see if it exists in the system  
+      - *Inputs:* Inputted username, Inputted Password, @Variable to hold status/ error message   
+      - *Outputs:* Message: either 'Success' or condition that was not met
 
   - **change_profesor_password** : Allows the professor to change their password  
       - *Inputs:* Professor NetID, Old Password, New Password, @Variable to hold status/ error message   
       - *Outputs:* Message: either 'Success' or condition that was not met
-
-- **get_section_criteria** : Retrieves all peer review criteria for a given professor's given section
-    - *Inputs:* Professor NetID, Section Code, Review Type
-    - *Outputs:* For all criteria: Professor NetID, Criteria Name, Criteria Description, Section Code
  
-- **get_section_criteriaid** : For the professor to get the criteria ID info for the section before being able to edit it
-    - *Inputs:* Professor NetID, Section Code, Review Type, @Variable to hold status/ error message 
-    - *Outputs:* CriteriaID, Criteria Name, Criteria Description for all Criteria
+  - **get_section_criteriaid** : For the professor to get the criteria ID info for the section before being able to edit it
+      - *Inputs:* Professor NetID, Section Code, Review Type, @Variable to hold status/ error message 
+      - *Outputs:* CriteriaID, Criteria Name, Criteria Description for all Criteria
 
-- **professor_create_criteria** : Allows the professor to create new criteria for a section
-    - *Inputs:* Professor NetID, Section Code, Criteria Name, Criteria Description, Review Type, @Variable to hold status/ error message  
-    - *Outputs:*Message: either 'Success' or condition that was not met
+  - **professor_create_criteria** : Allows the professor to create new criteria for a section
+      - *Inputs:* Professor NetID, Section Code, Criteria Name, Criteria Description, Review Type, @Variable to hold status/ error message  
+      - *Outputs:*Message: either 'Success' or condition that was not met
 
-- **professor_edit_criteria** : Allows the professor to enter an updated Criteria Name and Description
-    - *Inputs:* Professor NetID, Section Code, CriteriaID, Updated Criteria Name, Updated Criteria Description, Review Type, @Variable to hold status/ error message 
-    - *Outputs:* Message: either 'Success' or condition that was not met
-    - Ideally for this one get_section_criteriaid would be called first which would return all of the information for the criteria in this section, and then they would be able to alter from there because the CriteriaID is necessary to make the edits.
+  - **professor_edit_criteria** : Allows the professor to enter an updated Criteria Name and Description
+      - *Inputs:* Professor NetID, Section Code, CriteriaID, Updated Criteria Name, Updated Criteria Description, Review Type, @Variable to hold status/ error message 
+      - *Outputs:* Message: either 'Success' or condition that was not met
+      - Ideally for this one get_section_criteriaid would be called first which would return all of the information for the criteria in this section, and then they would be able to alter from there because the CriteriaID is necessary to make the edits.
    
-- **professor_delete_criteria** : Allows the professor to delete a criteria from the database
-    - *Inputs:* Professor NetID, Section Code, Criteria Name, Review Type, @Variable to hold status/ error message 
-    - *Outputs:* Message: either 'Success' or condition that was not met
-    - *Disclaimer:* A criteria cannot be deleted it is a part of a Peer Review/ used in the Scored Table. As mentioned in the create_peer_reviews function, once the peer reviews have been made the professor will not be able to alter or delete criteria or reviews.
+  - **professor_delete_criteria** : Allows the professor to delete a criteria from the database
+      - *Inputs:* Professor NetID, Section Code, Criteria Name, Review Type, @Variable to hold status/ error message 
+      - *Outputs:* Message: either 'Success' or condition that was not met
+      - *Disclaimer:* A criteria cannot be deleted it is a part of a Peer Review/ used in the Scored Table. As mentioned in the create_peer_reviews function, once the peer reviews have been made the professor will not be able to alter or delete criteria or reviews.
 
+  - **create_peer_reviews** : Allows the professor to create the peer reviews for a section  
+      - *Inputs:* Professor NetID, Section Code, Review Type, @Variable to hold status/ error message    
+      - *Outputs:* Message: either 'Success' or condition that was not met  
+      - *SubProcedures:* insert_peer_reviews and insert_scored_table  
+      - **_Creation Disclamer:_** For this one it creates a lot of entries for the PeerReviews, Reviewed, and Scored Tables which would be extremely difficult to try and remove. So if when the professor is choosing to create the peer reviews we should display a 'Are you sure you want to do this? Once these Peer Reviews have been created, the Peer Reviews and Criteria cannot be altered or deleted unless all associated Peer Reviews and Scores data is deleted' Or something along those lines if that seems feasible.  
+      - *Working With load.sql:* This initializes all of the scores to 0, so if you want to test the scores and averages don't use this procedure and just use the data in load.sql. However if you want to test this procedure then you would comment out the PeerReview, Reviewed, and Scored insertions in load.sql.
 
-- **create_peer_reviews** : Allows the professor to create the peer reviews for a section  
-    - *Inputs:* Professor NetID, Section Code, Review Type, @Variable to hold status/ error message    
-    - *Outputs:* Message: either 'Success' or condition that was not met  
-    - *SubProcedures:* insert_peer_reviews and insert_scored_table  
-    - **_Creation Disclamer:_** For this one it creates a lot of entries for the PeerReviews, Reviewed, and Scored Tables which would be extremely difficult to try and remove. So if when the professor is choosing to create the peer reviews we should display a 'Are you sure you want to do this? Once these Peer Reviews have been created, the Peer Reviews and Criteria cannot be altered or deleted unless all associated Peer Reviews and Scores data is deleted' Or something along those lines if that seems feasible.  
-    - *Working With load.sql:* This initializes all of the scores to 0, so if you want to test the scores and averages don't use this procedure and just use the data in load.sql. However if you want to test this procedure then you would comment out the PeerReview, Reviewed, and Scored insertions in load.sql.
+  - **professor_view_averages** : Allows the professor to view the average score given to each student based on the criteria  
+      - *Inputs:* Professor NetID, Section Code, Review Type (Midterm or Final)  
+      - *Outputs:* Pulls the student averages for each criteria
 
-- **professor_view_averages** : Allows the professor to view the average score given to each student based on the criteria  
-    - *Inputs:* Professor NetID, Section Code, Review Type (Midterm or Final)  
-    - *Outputs:* Pulls the student averages for each criteria
+  - **change_view_individual_scores** : Allows the professor to view the individual scores the student received  
+      - *Inputs:* Professor NetID, Section Code, Student NetID, Review Type (Midterm or Final)  
+      - *Outputs:* Reviewer NetID, Reviewer Name, Criteria Name, and Score
 
-- **change_view_individual_scores** : Allows the professor to view the individual scores the student received  
-    - *Inputs:* Professor NetID, Section Code, Student NetID, Review Type (Midterm or Final)  
-    - *Outputs:* Reviewer NetID, Reviewer Name, Criteria Name, and Score
-
-- **get_student_scores_received** : Pulls all of the scores that a student was given from their team members and themselves
-    - *Inputs:* Professor NetID, Section Code, Reviewee NetID, Review Type
-    - *Outputs:* Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
+  - **get_student_scores_received** : Pulls all of the scores that a student was given from their team members and themselves
+      - *Inputs:* Professor NetID, Section Code, Reviewee NetID, Review Type
+      - *Outputs:* Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
  
-- **get_student_scores_given** : Pulls all of the scores that a student gave to all of their team members and themselves
-    - *Inputs:* Professor NetID, Section Code, Student NetID, Review Type
-    - *Outputs:* Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
+  - **get_student_scores_given** : Pulls all of the scores that a student gave to all of their team members and themselves
+      - *Inputs:* Professor NetID, Section Code, Student NetID, Review Type
+      - *Outputs:* Professor NetID, Section Code, Team Number, Reviewee NetID, Reviewer NetID, Review Type, Criteria Name, Score
 
-- **edit_scores_given** : Allows the professor to go in and change a score that was given for a student
-    - *Inputs:* Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, Review Type, , @Variable to hold status/ error message 
-    - *Outputs:* Message: either 'Success' or condition that was not met
+  - **edit_scores_given** : Allows the professor to go in and change a score that was given for a student
+      - *Inputs:* Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, Review Type, , @Variable to hold status/ error message 
+      - *Outputs:* Message: either 'Success' or condition that was not met
 
-- **professor_insert_num_teams** : Inserts x teams into the section
-    - *Inputs:* Professor NetID, Section Code, Number of Teams, @Variable to hold status/ error message 
-    - *Outputs:* Message: either 'Success' or condition that was not met
+  - **professor_insert_num_teams** : Inserts x teams into the section
+      - *Inputs:* Professor NetID, Section Code, Number of Teams, @Variable to hold status/ error message 
+      - *Outputs:* Message: either 'Success' or condition that was not met
  
-- **professor_delete_team** : Allows the professor to delete a team from their section
-    - *Inputs:* Professor NetID, Section Code, Team Number, @Variable to hold status/ error message 
-    - *Outputs:* Message: either 'Success' or condition that was not met
-    - *Disclaimer:* This function goes into the MemberOf Table and removes every student from the team before deleting the team
+  - **professor_delete_team** : Allows the professor to delete a team from their section
+      - *Inputs:* Professor NetID, Section Code, Team Number, @Variable to hold status/ error message 
+      - *Outputs:* Message: either 'Success' or condition that was not met
+      - *Disclaimer:* This function goes into the MemberOf Table and removes every student from the team before deleting the team
  
-- **professor_change_student_team** : Allows the professor to switch a student to a different Team
-    - *Inputs:* Professor NetID, Section Code, Student NetID, New Team Number, @Variable to hold status/ error message 
-    - *Outputs:* Message: either 'Success' or condition that was not met
+  - **professor_change_student_team** : Allows the professor to switch a student to a different Team
+      - *Inputs:* Professor NetID, Section Code, Student NetID, New Team Number, @Variable to hold status/ error message 
+      - *Outputs:* Message: either 'Success' or condition that was not met
