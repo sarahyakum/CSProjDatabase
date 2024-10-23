@@ -197,7 +197,7 @@ CREATE PROCEDURE student_timeslot_by_date(
     IN input_date DATE)
 BEGIN
     SELECT * 
-    FROM student_daily_timeslots
+    FROM student_timeslots
     WHERE StuNetID = stu_netID AND TSDate = input_date;
 END //
 
@@ -210,7 +210,7 @@ CREATE PROCEDURE student_timeslot_by_week(
     IN start_date DATE)
 BEGIN
     SELECT * 
-    FROM student_daily_timeslots
+    FROM student_timeslots
     WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 7 DAY); 
 END //
 
@@ -223,9 +223,37 @@ CREATE PROCEDURE student_timeslot_by_month(
     IN start_date DATE)
 BEGIN
     SELECT * 
-    FROM student_daily_timeslots
+    FROM student_timeslots
     WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 30 DAY); 
 END //
+
+
+-- Procedure to retrieve the peer review criteria for a particular student and section (given the review type)
+-- Input: Student NetID, Review Type (Midterm or Final), Section Code
+-- Output: For all criteria: Criteria Name, Criteria Description
+CREATE PROCEDURE student_get_peer_review_criteria (
+    IN stu_netID char(9),
+    IN review_type char(7),
+    IN section_code char(5),)
+BEGIN
+    SELECT CriteriaName, CriteriaDescription
+    FROM student_peer_review_criteria
+    WHERE StuNetID = stu_netID AND SecCode = section_code AND ReviewType = review_type;
+END //
+
+
+-- Procedure to retrieve the team members of a particular team in a specific section
+-- Input: Team Number, Section Code
+-- Output: For all team members: Student Name, Student NetID
+CREATE PROCEDURE student_get_team_members (
+    IN team_num int,
+    IN section_code char(5))
+BEGIN
+    SELECT StuName, StuNetID
+    FROM student_team_and_section
+    WHERE TeamNum = team_num AND SecCode = section_code;
+END //
+
 
 -- Procedure to insert a student score for another student
 -- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, @Variable to get the error message
