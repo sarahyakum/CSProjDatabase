@@ -834,4 +834,70 @@ keep_criteria_same: BEGIN
 END //
 
 
+-- Procedure to retrieve all sections that a professor teaches
+-- Input: Professor NetID
+-- Output: For all sections: Section Code and Section Name
+CREATE PROCEDURE professor_get_sections (
+    IN prof_netID char(9))
+BEGIN
+    SELECT Sec.SecCode, Sec.SecName
+    FROM Section Sec
+    JOIN Teaches T ON T.SecCode = Sec.SecCode
+    JOIN Professor P ON P.ProfNetID = T.ProfNetID
+    WHERE P.ProfNetID = prof_netID;
+END //
+
+
+-- Procedure to calculate the total duration (HH:MM) for a student on a given day
+-- Input: Professor NetID, Student NetID, Section Code, Input Date (YYYY-MM-DD)
+-- Output: Total number of hours tracked for that day (HH:MM)
+CREATE PROCEDURE professor_get_daily_timeslot_hours (
+    IN prof_netID char(9),
+    IN stu_netID char(9),
+    IN section_code char(5),
+    IN input_date DATE)
+BEGIN
+    DECLARE total_minutes INT DEFAULT 0;
+    DECLARE total_duration varchar(5);
+
+    SELECT SUM(TIME_TO_SEC(STR_TO_DATE(TSDuration, '%H:%i')) / 60) INTO total_minutes
+    FROM professor_student_timeslots
+    WHERE ProfNetID = prof_netID 
+      AND StuNetID = stu_netID 
+      AND SecCode = section_code 
+      AND TSDate = input_date;
+
+    -- Converts total minutes back to HH:MM format
+    SET total_duration = CONCAT(FLOOR(total_minutes / 60), ':', LPAD(total_minutes % 60, 2, '0'));
+
+    -- Returns the total duration
+    SELECT total_duration AS TotalDuration;
+END //
+
+
+-- Procedure to calculate the cumulative total duration for a student for all timeslots
+-- Input: Professor NetID, Student NetID, Section Code
+-- Output: Cumulative number of hours tracked across all timeslots (HH:MM)
+CREATE PROCEDURE professor_get_cumulative_hours (
+    IN prof_netID char(9),
+    IN stu_netID char(9),
+    IN section_code char(5))
+BEGIN
+    DECLARE total_minutes INT DEFAULT 0;
+    DECLARE total_duration varchar(5);
+
+    SELECT SUM(TIME_TO_SEC(STR_TO_DATE(TSDuration, '%H:%i')) / 60) INTO total_minutes
+    FROM professor_student_timeslots
+    WHERE ProfNetID = prof_netID 
+      AND StuNetID = stu_netID 
+      AND SecCode = section_code;
+
+    -- Converts total minutes back to HH:MM format
+    SET total_duration = CONCAT(FLOOR(total_minutes / 60), ':', LPAD(total_minutes % 60, 2, '0'));
+
+    -- Returns the total duration
+    SELECT total_duration AS TotalDuration;
+END //
+
+
 DELIMITER ;
