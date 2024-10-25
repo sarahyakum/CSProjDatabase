@@ -3,7 +3,7 @@ USE seniordesignproject;
 DELIMITER //
 -- Procedure to check whether the student's attempted username and password are in the system
 -- Input: Student username, Student password, A way for the error message to be returned
--- Output: Error Message: 'Success' or 'Incorrect username or password' 
+-- Output: Error Message: 'Success' or condition not met, if first log in returns 'Change password' 
 CREATE PROCEDURE check_student_login (
 	IN stu_input_username varchar(20), 
     IN stu_input_password varchar(20),
@@ -24,6 +24,10 @@ check_stu_login:BEGIN
     IF user_count < 1 THEN 
 		SET error_message = 'Incorrect username or password';
         LEAVE check_stu_login;
+	END IF;
+    
+	IF stu_input_password = (SELECT StuUTDID FROM Student WHERE StuNetID = stu_input_username) THEN 
+		SET error_message = 'Change password';
 	END IF;
 END //
 
@@ -54,6 +58,9 @@ change_stu_password: BEGIN
         LEAVE change_stu_password;
 	ELSEIF old_student_password = new_student_password THEN 
 		SET error_message = 'Password cannot be the same';
+        LEAVE change_stu_password;
+	ELSEIF new_student_password = (SELECT StuUTDID FROM Student WHERE StuNetID = stu_username) THEN 
+		SET error_message = 'Password cannot be UTD ID';
         LEAVE change_stu_password;
 	END IF;
     
@@ -310,10 +317,9 @@ BEGIN
     GROUP BY CriteriaName;
 END //
 
-
 -- Procedure to check whether the professor's attempted username and password are in the system
 -- Input: Professor username, Professor password, @Variable to get the error message
--- Output: Error Message: 'Success' or 'Incorrect username or password'
+-- Output: Error Message: 'Success' or condition not met, if first login 'Change password'
 CREATE PROCEDURE check_professor_login (
 	IN prof_input_username varchar(20), 
     IN prof_input_password varchar(20),
@@ -334,6 +340,10 @@ check_prof_login:BEGIN
     IF user_count < 1 THEN 
 		SET error_message = 'Incorrect username or password';
         LEAVE check_prof_login;
+	END IF;
+    
+	IF prof_input_password = (SELECT ProfUTDID FROM Professor WHERE ProfNetID = prof_input_username) THEN 
+		SET error_message = 'Change password';
 	END IF;
 END //
 
@@ -364,6 +374,9 @@ prof_change_pass: BEGIN
         LEAVE prof_change_pass;
 	ELSEIF old_professor_password = new_professor_password THEN 
 		SET error_message = 'Password cannot be the same';
+        LEAVE prof_change_pass;
+	ELSEIF new_professor_password = (SELECT ProfUTDID FROM Professor WHERE ProfNetID = professor_username) THEN 
+		SET error_message = 'Password cannot be UTD ID';
         LEAVE prof_change_pass;
 	END IF;
     
