@@ -85,6 +85,11 @@
       - *Inputs:* Student NetID, Start Date
       - *Outputs:* For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
 
+  - **get_section_students** : Retrieves all students in a given section
+      - *Inputs:* Section Code
+      - *Outputs:* Student NetIDs
+      
+
 
 ## Professor 
 
