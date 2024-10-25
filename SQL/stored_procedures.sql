@@ -1,9 +1,10 @@
 USE seniordesignproject;
 
 DELIMITER //
+
 -- Procedure to check whether the student's attempted username and password are in the system
 -- Input: Student username, Student password, A way for the error message to be returned
--- Output: Error Message: 'Success' or condition not met, if first log in returns 'Change password' 
+-- Output: Error Message: 'Success' or 'Incorrect username or password' 
 CREATE PROCEDURE check_student_login (
 	IN stu_input_username varchar(20), 
     IN stu_input_password varchar(20),
@@ -44,7 +45,7 @@ change_stu_password: BEGIN
 	DECLARE user_count INT;
     SET error_message = 'Success';
     
-	IF stu_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
+	IF stu_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
         SET error_message = 'Username must be alphanumeric';
         LEAVE change_stu_password;
 	END IF;
@@ -103,6 +104,7 @@ inserting_timeslot:BEGIN
 	VALUES (student_netID, ts_date, ts_description, ts_duration);
     
 END //
+
 
 -- Procedure to allow students to edit their timeslot, have to be within past 3 days and the description has to be longer than 30 characters
 -- Inputs: Student NetId, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Deuration, and a variable to hold the error message
@@ -196,6 +198,7 @@ BEGIN
 END //
 
 
+
 -- Procedure to retrieve all timeslots for a specific student on a specific date
 -- Input: Student NetID, Timeslot Date ('YYYY-MM-DD')
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
@@ -207,6 +210,7 @@ BEGIN
     FROM student_timeslots
     WHERE StuNetID = stu_netID AND TSDate = input_date;
 END //
+
 
 
 -- Procedure to retrieve all timeslots for a specific student during a specific week (given a start date)
@@ -319,7 +323,7 @@ END //
 
 -- Procedure to check whether the professor's attempted username and password are in the system
 -- Input: Professor username, Professor password, @Variable to get the error message
--- Output: Error Message: 'Success' or condition not met, if first login 'Change password'
+-- Output: Error Message: 'Success' or 'Incorrect username or password'
 CREATE PROCEDURE check_professor_login (
 	IN prof_input_username varchar(20), 
     IN prof_input_password varchar(20),
@@ -912,7 +916,6 @@ BEGIN
     SELECT total_duration AS TotalDuration;
 END //
 
-
 -- Procedure to get all students in a given section
 -- Input: Section Code
 -- Output: Student NetIDs
@@ -923,6 +926,5 @@ BEGIN
 	FROM Student S, Attends A
 	WHERE A.SecCode = section_code AND S.StuNetID = A.StuNetID;
 END //
-
 
 DELIMITER ;
