@@ -913,4 +913,16 @@ BEGIN
 END //
 
 
+-- Procedure to get all students in a given section
+-- Input: Section Code
+-- Output: Student NetIDs
+CREATE PROCEDURE get_section_students (
+	IN section_code char(5))
+BEGIN
+	SELECT S.StuNetID 
+	FROM Student S, Attends A
+	WHERE A.SecCode = section_code AND S.StuNetID = A.StuNetID;
+END //
+
+
 DELIMITER ;
