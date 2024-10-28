@@ -17,16 +17,11 @@ check_stu_login:BEGIN
 	IF stu_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
         SET error_message = 'Username must be alphanumeric';
         LEAVE check_stu_login;
-	END IF;
-    
-	SELECT COUNT(*) INTO user_count
-	FROM Student
-	WHERE StuNetID = stu_input_username AND StuPassword = stu_input_password;
-    
-    IF user_count < 1 THEN 
+	ELSEIF NOT EXISTS (SELECT * FROM Student WHERE StuNetID = stu_input_username AND StuPassword = stu_input_password) THEN 
 		SET error_message = 'Incorrect username or password';
         LEAVE check_stu_login;
 	END IF;
+    
     
 	IF stu_input_password = (SELECT StuUTDID FROM Student WHERE StuNetID = stu_input_username) THEN 
 		SET error_message = 'Change password';
@@ -58,20 +53,16 @@ change_stu_password: BEGIN
     
 	IF user_count < 1 THEN 
 		SET error_message = 'Incorrect username or password';
-        LEAVE change_stu_password;
 	ELSEIF old_student_password = new_student_password THEN 
 		SET error_message = 'Password cannot be the same';
-        LEAVE change_stu_password;
 	ELSEIF new_student_password = (SELECT StuUTDID FROM Student WHERE StuNetID = stu_username) THEN 
 		SET error_message = 'Password cannot be UTD ID';
-        LEAVE change_stu_password;
-	END IF;
-    
-    IF user_count > 0 THEN 
+	ELSE 
 		UPDATE Student
 		SET StuPassword = new_student_password
 		WHERE StuNetID = stu_username;
 	END IF;
+
 END //
 
 
@@ -172,7 +163,6 @@ END //
 -- Procedure to return the total time the student has spent for the project
 -- Input: Student NetID, Start Date, End Date
 -- Output: Total time in Minutes
--- CALL student_total_time('student_netID', @TotalTime); SELECT @TotalTime;
 DROP PROCEDURE IF EXISTS student_total_time;
 CREATE PROCEDURE student_total_time (
 	IN student_netID char(9),
@@ -182,6 +172,8 @@ BEGIN
     SET student_total = (SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
     FROM Timeslot
     WHERE StuNetID = student_netID);
+    
+    
 END //
 
 
@@ -308,6 +300,9 @@ inserting_score: BEGIN
         LEAVE inserting_score;
     ELSEIF (review_ID IS NULL) THEN 
 		SET error_message = 'Review does not exist';
+        LEAVE inserting_score;
+	ELSEIF updates_score = NULL THEN 
+		SET error_message = 'Score must have a value between 0 and 5';
         LEAVE inserting_score;
     ELSEIF (updated_score > 5) OR (updated_score < 0) THEN 
 		SET error_message = 'Score must be between 0 and 5';
@@ -488,6 +483,8 @@ CREATE PROCEDURE create_peer_reviews (
 	IN professor_netID char(9),
     IN section_code char(5),
     IN review_type char(7),
+    IN start_date DATE,
+    IN end_date DATE,
     OUT error_message varchar(100))
 creating_peer_reviews:BEGIN 
     DECLARE student_id char(9);
@@ -507,7 +504,7 @@ creating_peer_reviews:BEGIN
 		SET error_message = 'No students currently in this section';
         LEAVE creating_peer_reviews;
 	ELSEIF NOT EXISTS (SELECT * FROM Criteria WHERE SecCode = section_code AND ReviewType = review_type) THEN 
-		SET error_message = 'No criteria for this section currently';
+		SET error_message = 'No criteria for this section or review type currently';
         LEAVE creating_peer_reviews;
 	ELSEIF NOT EXISTS (SELECT * FROM MemberOf WHERE SecCode = section_code) THEN 
 		SET error_message = 'No students on teams for this section currently';
@@ -517,6 +514,14 @@ creating_peer_reviews:BEGIN
         LEAVE creating_peer_reviews;
 	ELSEIF EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND ReviewType = review_type) THEN 
 		SET error_message = 'Peer Reviews of this type already exist';
+        LEAVE creating_peer_reviews;
+	ELSEIF start_date >= end_date THEN 
+		SET error_message = 'Start date must be before the end end date';
+        LEAVE creating_peer_reviews;
+	ELSEIF EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND 
+		(start_date BETWEEN StartDate AND EndDate OR end_date BETWEEN StartDate AND EndDate
+		OR StartDate BETWEEN start_date AND end_date OR EndDate BETWEEN start_date AND end_date)) THEN 
+		SET error_message = 'Peer Reviews cannot overlap in availability';
         LEAVE creating_peer_reviews;
 	END IF;
     
@@ -529,7 +534,7 @@ creating_peer_reviews:BEGIN
 		END IF;
            
 		SET team_num = (SELECT TeamNum FROM MemberOf WHERE StuNetID = student_id AND SecCode = section_code);
-		CALL insert_peer_reviews(student_id, team_num, review_type, section_code, @errormessage);
+		CALL insert_peer_reviews(student_id, team_num, review_type, section_code, start_date, end_date);
         
 	END LOOP student_loop;
 	CLOSE student_cursor;
@@ -542,7 +547,9 @@ CREATE PROCEDURE insert_peer_reviews (
 	IN student_id char(9),
     IN team_num INT,
     IN review_type char(7),
-    IN section_code char(5))
+    IN section_code char(5),
+    IN start_date DATE,
+    IN end_date DATE)
 inserting_peer_and_scored: BEGIN 
     DECLARE other_student char(9);
     DECLARE done_member INT DEFAULT 0;
@@ -565,8 +572,8 @@ inserting_peer_and_scored: BEGIN
 		END IF;
         
         -- Inserts the peer reviews 
-        INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID)
-        VALUES (section_code, review_type, other_student);
+        INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID, StartDate, EndDate)
+        VALUES (section_code, review_type, other_student, start_date, end_date);
         
 		SET last_reviewID = LAST_INSERT_ID();
         
@@ -607,7 +614,7 @@ BEGIN
 		END IF;
             
 		INSERT INTO Scored (ReviewID, CriteriaID, SecCode, Score)
-		VALUES (review_id, criteria_id, section_code, 0);
+		VALUES (review_id, criteria_id, section_code, NULL);
             
 	END LOOP criteria_loop;
 	CLOSE criteria_cursor;
@@ -960,5 +967,150 @@ BEGIN
 	FROM Student S, Attends A
 	WHERE A.SecCode = section_code AND S.StuNetID = A.StuNetID;
 END //
+
+
+-- Procedure to get the number of students in a students team
+-- Inputs: Student NetID, Section Code, @Variable for num in team, @Variable for error message
+-- Outputs: Message: Success or condition not met, Number in Team: 0 if not found, or the number in the team
+DROP PROCEDURE IF EXISTS number_students_in_team;
+CREATE PROCEDURE number_students_in_team (
+	IN student_netID char(9),
+    IN section_code char(5),
+    OUT num_in_team INT,
+    OUT error_message varchar(100))
+num_in_team:BEGIN
+	DECLARE team_num INT DEFAULT 0;
+    SET error_message = 'Success';
+    SET num_in_team = 0;
+    
+	IF NOT EXISTS (SELECT TeamNum FROM MemberOf WHERE StuNetID = student_netID AND SecCode = section_code) THEN 
+		SET error_message = 'Not a member of a team';
+        LEAVE num_in_team;
+	END IF;
+    
+    SET team_num = (SELECT TeamNum FROM MemberOf WHERE StuNetID = student_netID AND SecCode = section_code);
+    
+    SELECT COUNT(*) INTO num_in_team
+    FROM MemberOf WHERE SecCode = section_code AND TeamNum = team_num;
+
+END // 
+
+-- Procedure to check whether there is a peer review for the section that is currently available
+-- Inputs: Section Code, @Variable for the message
+-- Outputs: Message: 'Peer Review Available' or reason why not available
+DROP PROCEDURE IF EXISTS check_peer_review_availability;
+CREATE PROCEDURE check_peer_review_availability (
+	IN student_netID char(9),
+	IN section_code char(5),
+    OUT error_message varchar(100))
+pr_availability:BEGIN 
+    DECLARE isAvailable BOOL;
+    SET error_message = 'Peer Review Available';
+    
+    IF NOT EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate)) THEN 
+		SET error_message = 'No peer reviews are currently available.';
+        LEAVE pr_availability;
+	ELSEIF NOT EXISTS (SELECT * FROM PeerReview PR JOIN Scored S ON PR.ReviewID = S.ReviewID AND PR.SecCode = S.SecCode 
+		WHERE PR.ReviewerID = student_netID AND SecCode = section_code AND S.Score is NULL) THEN 
+		SET error_message = 'Already completed current peer reviews. To make changes email the professor in charge of this section.';
+        LEAVE pr_availability;
+	END IF;
+        
+END //
+
+
+-- Procedure to add students to a class
+-- Inputs: Student NetID, Student UTDID, Student Name, Section code, @Variable to hold message
+-- Outputs: Message: 'Success' or condition not met
+DROP PROCEDURE IF EXISTS professor_add_students;
+CREATE PROCEDURE professor_add_students (
+	IN student_netID char(9),
+    IN student_UTDID char(10),
+    IN student_name varchar(30),
+    IN section_code char(5),
+    OUT error_message varchar(100))
+add_student: BEGIN
+	SET error_message = 'Success';
+    
+    IF student_netID NOT REGEXP '^[a-zA-Z]{3}[0-9]{6}$' THEN 
+		SET error_message = 'Student NetID not in correct format';
+        LEAVE add_student;
+	ELSEIF student_UTDID NOT REGEXP '^[0-9]{10}$' THEN 
+		SET error_message = 'Student UTDID not in correct format';
+        LEAVE add_student;
+	ELSEIF NOT EXISTS (SELECT * FROM Section WHERE SecCode = section_code) THEN 
+		SET error_message = 'Section does not exist';
+        LEAVE add_student;
+	END IF;
+    
+    INSERT INTO Student (StuNetID, StuUTDID, StuName, StuPassword)
+    VALUES (student_netID, student_UTDID, student_name, student_UTDID);
+    
+    INSERT INTO Attends (StuNetID, SecCode) 
+    VALUES (student_netID, section_code);
+
+END //
+
+
+-- Procedure to add a student to a team
+-- Inputs: Team Number, Student NetID, Section Code, @Variable for the error message
+-- Outputs: Message: 'Success' or condition not met
+DROP PROCEDURE IF EXISTS add_student_to_team;
+CREATE PROCEDURE add_student_to_team (
+	IN team_num INT,
+    IN student_netID char(9),
+    IN section_code char(5),
+    OUT error_message varchar(100))
+add_to_team:BEGIN 
+	SET error_message = 'Success';
+    
+    IF NOT EXISTS ( SELECT * FROM Team WHERE TeamNum = team_num AND SecCode = section_code) THEN 
+		SET error_message = 'Team number does not exist for this section';
+        LEAVE add_to_team;
+	ELSEIF NOT EXISTS (SELECT * FROM Attends WHERE StuNetID = student_netID AND SecCode = section_code) THEN 
+		SET error_message = 'Student does not attend this class';
+        LEAVE add_to_team;
+	ELSEIF EXISTS (SELECT * FROM MemberOf WHERE StuNetID = student_netID AND SecCode = section_code) THEN 
+		SET error_message = 'Student already a member of a team';
+        LEAVE add_to_team;
+	END IF;
+    
+    INSERT INTO MemberOf (TeamNum, StuNetID, SecCode) 
+    VALUES (team_num, student_netID, section_code);
+
+END //
+
+
+-- Procedure for a professor to add their section
+-- Input: Professor NetID, Section Code, Section Name, @Variable to hold message
+-- Output: Message: 'Success' or condition not met
+DROP PROCEDURE IF EXISTS professor_add_section;
+CREATE PROCEDURE professor_add_section (
+	IN professor_netID char(9),
+    IN section_code char(5),
+    IN section_name varchar(12),
+    OUT error_message varchar(100))
+add_section: BEGIN 
+	SET error_message = 'Success';
+    
+    IF EXISTS (SELECT * FROM Section WHERE SecCode = section_code) THEN 
+		SET error_message = 'Section Code already in use';
+        LEAVE add_section;
+	ELSEIF EXISTS (SELECT * FROM Section WHERE SecName = section_name) THEN 
+		SET error_message = 'Section name already in use';
+        LEAVE add_section;
+	ELSEIF NOT EXISTS (SELECT * FROM Professor WHERE ProfNetID = professor_netID) THEN 
+		SET error_message = 'Professor NetID does not exist in the system';
+        LEAVE add_section;
+	END IF;
+    
+    INSERT INTO Section (SecCode, SecName) 
+    VALUES (section_code, section_name);
+    
+    INSERT INTO Teaches (ProfNetID, SecCode)
+    VALUES (professor_netID, section_code);
+
+END // 
+
 
 DELIMITER ;
