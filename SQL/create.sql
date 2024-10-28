@@ -80,6 +80,8 @@ ReviewID int NOT NULL AUTO_INCREMENT,
 SecCode char(5) NOT NULL,  
 ReviewType char(7) NOT NULL,  
 ReviewerID char(9) NOT NULL,  
+StartDate DATE NOT NULL,
+EndDate DATE NOT NULL, 
 PRIMARY KEY (ReviewID, SecCode),   
 FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID),  
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)
@@ -111,7 +113,7 @@ CREATE TABLE Scored (
 ReviewID int NOT NULL,   
 CriteriaID int NOT NULL,   
 SecCode char(5) NOT NULL,
-Score int NOT NULL,  
+Score int,  
 PRIMARY KEY (ReviewID, CriteriaID, SecCode),  
 FOREIGN KEY (ReviewID, SecCode) REFERENCES PeerReview(ReviewID, SecCode),  
 FOREIGN KEY (CriteriaID, SecCode) REFERENCES Criteria(CriteriaID, SecCode)  
