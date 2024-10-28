@@ -60,6 +60,14 @@
   - **student_view_averages** : Retrieves the average score that a student received for each criteria 
       - *Inputs:* Student NetID, Section Code, Review Type
       - *Outputs:* For all criteria of a particular review type: Criteria Name, Average Score
+   
+  - **number_student_in_team** : Retrieves the number of students in a student's team
+      - *Inputs:* Student NetID, Section Code, @Variable for number in team, @Variable for status message
+      - *Outputs:* Message: 'Success' or the condition not met, Number in Team: 0 if not found, or number in team
+   
+  - **check_peer_review_availability** : Allows the student to check whether there is currently a peer review that is available
+      - *Inputs:* Section Code, @Variable for message
+      - *Outputs:* Message: 'Success' or reason not available
 
   
 ## General
@@ -120,7 +128,7 @@
       - *Disclaimer:* A criteria cannot be deleted it is a part of a Peer Review/ used in the Scored Table. As mentioned in the create_peer_reviews function, once the peer reviews have been made the professor will not be able to alter or delete criteria or reviews.
 
   - **create_peer_reviews** : Allows the professor to create the peer reviews for a section  
-      - *Inputs:* Professor NetID, Section Code, Review Type, @Variable to hold status/ error message    
+      - *Inputs:* Professor NetID, Section Code, Review Type, Start Date, End Date @Variable to hold status/ error message    
       - *Outputs:* Message: either 'Success' or condition that was not met  
       - *SubProcedures:* insert_peer_reviews and insert_scored_table  
       - **_Creation Disclamer:_** For this one it creates a lot of entries for the PeerReviews, Reviewed, and Scored Tables which would be extremely difficult to try and remove. So if when the professor is choosing to create the peer reviews we should display a 'Are you sure you want to do this? Once these Peer Reviews have been created, the Peer Reviews and Criteria cannot be altered or deleted unless all associated Peer Reviews and Scores data is deleted' Or something along those lines if that seems feasible.  
@@ -166,3 +174,22 @@
   - **professor_get_cumulative_hours** : Calculates the cumulative duration for all timeslots of a student 
       - *Inputs:* Professor NetID, Student NetID, Section Code
       - *Outputs:* Cumulative number of hours tracked across all timeslots
+
+  - **professor_add_students** : Allows the professor to add students to a section
+    - *Inputs:* Student NetID, Student UTDID, Student Name, Section Code, @Variable for message
+    - *Outputs:* Message: 'Success' or condition not met
+   
+  - **add_student_to_team** : Allows the professor to add a student to a team
+      - *Inputs:* Team number, Student NetID, Section Code, @Variable for message
+      - *Outputs:* Message: 'Success' or condition not met
+   
+  - **professor_add_section** : Allows the professor to add their sections
+      - *Inputs:* Professor NetID, Section Code, Section Name, @Variable for message
+      - *Outputs:* Message: 'Successs' or condition not met
+   
+
+*Disclaimer*: For a professor to initialize everything at the start of the semester they need to do it in this order:
+  - professor_add_section
+  - professor_add_students
+  - professor_insert_num_teams
+  - add_student_to_team
