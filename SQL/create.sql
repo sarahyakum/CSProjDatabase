@@ -23,7 +23,9 @@ PRIMARY KEY (ProfNetID)
 -- Creating the Section (class) Table
 CREATE TABLE Section (  
 SecCode char(5) NOT NULL,  
-SecName varchar(12) UNIQUE NOT NULL,  
+SecName varchar(12) UNIQUE NOT NULL,
+StartDate DATE NOT NULL,
+EndDate DATE NOT NULL,  
 PRIMARY KEY (SecCode)  
 ); 
 
