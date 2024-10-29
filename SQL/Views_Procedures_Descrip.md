@@ -68,6 +68,10 @@
   - **check_peer_review_availability** : Allows the student to check whether there is currently a peer review that is available
       - *Inputs:* Section Code, @Variable for message
       - *Outputs:* Message: 'Success' or reason not available
+   
+  - **get_section_timeframe** : Allows the student side to grab the timeframe for the semester
+      - *Inputs:* Section Code
+      - *Outputs:* Start Date, End Date
 
   
 ## General
@@ -184,7 +188,7 @@
       - *Outputs:* Message: 'Success' or condition not met
    
   - **professor_add_section** : Allows the professor to add their sections
-      - *Inputs:* Professor NetID, Section Code, Section Name, @Variable for message
+      - *Inputs:* Professor NetID, Section Code, Section Name, Start Date, End Date, @Variable for message
       - *Outputs:* Message: 'Successs' or condition not met
    
 
