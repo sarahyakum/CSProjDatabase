@@ -72,7 +72,9 @@
   - **get_section_timeframe** : Allows the student side to grab the timeframe for the semester
       - *Inputs:* Section Code
       - *Outputs:* Start Date, End Date
-
+  - **student_peer_review_page** : Checks what the peer review page should show for the student
+      - *Inputs:* Student NetID, Section Code, @Variable for the message
+      - *Outputs:* 'Peer Review needs to be completed', 'Peer Reviews completed, waiting until the end of the review session to view average scores''Average scores for the last review type: (review type)'
   
 ## General
 
