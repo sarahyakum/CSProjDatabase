@@ -5,7 +5,6 @@ DELIMITER //
 -- Procedure to check whether the student's attempted username and password are in the system
 -- Input: Student username, Student password, A way for the error message to be returned
 -- Output: Error Message: 'Success' or 'Incorrect username or password'   
-DROP PROCEDURE IF EXISTS check_student_login;
 CREATE PROCEDURE check_student_login (
 	IN stu_input_username varchar(20), 
     IN stu_input_password varchar(20),
@@ -32,7 +31,6 @@ END //
 -- Procedure to change student password
 -- Input: Student Net ID, Old Password, New Password, A variable for the error message to be returned as
 -- Output: Error Message: 'Success', 'Incorrect username or password', or 'Password cannot be the same'
-DROP PROCEDURE IF EXISTS change_student_password;
 CREATE PROCEDURE change_student_password (
 	IN stu_username varchar(20),
     IN old_student_password varchar(20),
@@ -69,7 +67,6 @@ END //
 -- Procedure for inserting timeslots into the table, descipriotn >= 30 characters, Within past 3 days and not in future
 -- Inputs: Student Net ID, Timeslot date, description, duration, and a variable to hold the error message
 -- Output: Error Message: 'Success' or a description of which condition it violated
-DROP PROCEDURE IF EXISTS student_insert_timeslot;
 CREATE PROCEDURE student_insert_timeslot (
 	IN student_netID char(9),
     IN ts_date DATE,
@@ -103,7 +100,6 @@ END //
 -- Procedure to allow students to edit their timeslot, have to be within past 3 days and the description has to be longer than 30 characters
 -- Inputs: Student NetId, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Deuration, and a variable to hold the error message
 -- Outputs: Error Message: 'Success' or a description of which condition it violated
-DROP PROCEDURE IF EXISTS student_edit_timeslot;
 CREATE PROCEDURE student_edit_timeslot (
 	IN student_netID char(9),
     IN ts_date DATE,
@@ -138,7 +134,6 @@ END //
 -- Procedure to allow students to delete timeslots that are within the three previous days
 -- Inputs: Student NetID, Timeslot Date, and a variable to hold the error message
 -- Outputs: Error Message: 'Success' or 'Must be within the previous 3 days to delete'
-DROP PROCEDURE IF EXISTS student_delete_timeslot;
 CREATE PROCEDURE student_delete_timeslot (
 	IN student_netID char(9),
     IN ts_date DATE,
@@ -163,7 +158,6 @@ END //
 -- Procedure to return the total time the student has spent for the project
 -- Input: Student NetID, Start Date, End Date
 -- Output: Total time in Minutes
-DROP PROCEDURE IF EXISTS student_total_time;
 CREATE PROCEDURE student_total_time (
 	IN student_netID char(9),
     OUT student_total INT)
@@ -181,7 +175,6 @@ END //
 -- Input: Student NetID
 -- Output: Total time in Minutes
 -- CALL student_total_time('student_netID', 'YYYY-MM-DD', 'YYYY-MM-DD', @TotalTime); SELECT @TotalTime;
-DROP PROCEDURE IF EXISTS student_time_in_range;
 CREATE PROCEDURE student_time_in_range (
 	IN student_netID char(9),
     IN startDate DATE,
@@ -201,7 +194,6 @@ END //
 -- Procedure to retrieve all timeslots for a specific student on a specific date
 -- Input: Student NetID, Timeslot Date ('YYYY-MM-DD')
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-DROP PROCEDURE IF EXISTS student_timeslot_by_date;
 CREATE PROCEDURE student_timeslot_by_date(
     IN stu_netID char(9),
     IN input_date DATE)
@@ -216,7 +208,6 @@ END //
 -- Procedure to retrieve all timeslots for a specific student during a specific week (given a start date)
 -- Input: Student NetID, Start Date
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-DROP PROCEDURE IF EXISTS student_timeslot_by_week;
 CREATE PROCEDURE student_timeslot_by_week(
     IN stu_netID char(9),
     IN start_date DATE)
@@ -230,7 +221,6 @@ END //
 -- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date)
 -- Input: Student NetID, Start Date
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
-DROP PROCEDURE IF EXISTS student_timeslot_by_month;
 CREATE PROCEDURE student_timeslot_by_month(
     IN stu_netID char(9),
     IN start_date DATE)
@@ -244,7 +234,6 @@ END //
 -- Procedure to retrieve the peer review criteria for a particular student and section (given the review type)
 -- Input: Student NetID, Review Type (Midterm or Final), Section Code
 -- Output: For all criteria: Criteria Name, Criteria Description
-DROP PROCEDURE IF EXISTS student_get_peer_review_criteria;
 CREATE PROCEDURE student_get_peer_review_criteria (
     IN stu_netID char(9),
     IN review_type char(7),
@@ -259,7 +248,6 @@ END //
 -- Procedure to retrieve the team members of a particular team in a specific section
 -- Input: Team Number, Section Code
 -- Output: For all team members: Student Name, Student NetID
-DROP PROCEDURE IF EXISTS student_get_team_members;
 CREATE PROCEDURE student_get_team_members (
     IN team_num int,
     IN section_code char(5))
@@ -273,7 +261,6 @@ END //
 -- Procedure to insert a student score for another student
 -- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, @Variable to get the error message
 -- Output: Error Message: 'Success' or the condition that was not met
-DROP PROCEDURE IF EXISTS student_insert_score;
 CREATE PROCEDURE student_insert_score (
 	IN section_code char(5),
 	IN reviewer_netID char(9),
@@ -318,7 +305,6 @@ END //
 -- Procedure to get the average score that a student received for each criteria (given the review type)
 -- Input: Student NetID, Section Code, Review Type (Midterm or Final)
 -- Output: For each criteria: Criteria Name and Average Score
-DROP PROCEDURE IF EXISTS student_view_averages;
 CREATE PROCEDURE student_view_averages (
     IN stu_netID char(9),
     IN section_code char(5),
@@ -333,7 +319,6 @@ END //
 -- Procedure to check whether the professor's attempted username and password are in the system
 -- Input: Professor username, Professor password, @Variable to get the error message
 -- Output: Error Message: 'Success' or 'Incorrect username or password'
-DROP PROCEDURE IF EXISTS check_professor_login;
 CREATE PROCEDURE check_professor_login (
 	IN prof_input_username varchar(20), 
     IN prof_input_password varchar(20),
@@ -365,7 +350,6 @@ END //
 -- Procedure to change student password
 -- Input: Student Net ID, Old Password, New Password, @Variable to hold get the error message
 -- Output: Error Message: 'Success" or the condition that was not met
-DROP PROCEDURE IF EXISTS change_professor_password;
 CREATE PROCEDURE change_professor_password (
 	IN prof_username varchar(20),
     IN old_professor_password varchar(20),
@@ -405,7 +389,6 @@ END //
 -- Procedure for the professor to create a new criteria, but only if they teach the class
 -- Input: Professor NetID, Section Code, Criteria Name, Criteria Description,  Review Type, @Variable to get error status
 -- Output: Error Message: 'Success' or condition that was not met
-DROP PROCEDURE IF EXISTS professor_create_criteria;
 CREATE PROCEDURE professor_create_criteria (
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -436,7 +419,6 @@ END //
 -- Procedure to allow the professor to view a student's average scores received for a review type
 -- Input: Professor NetID, Student NetID, Section Code, Review Type
 -- Output: For each criteria: Criteria Name and Average Score
-DROP PROCEDURE IF EXISTS professor_view_averages;
 CREATE PROCEDURE professor_view_averages (
 	IN prof_netID char(9),
     IN stu_netID char(9),
@@ -453,7 +435,6 @@ END //
 -- Procedure for the professor to view the individual scores given to a student
 -- Inputs: Professor Net ID, Section Code, Student Net ID, Review Type
 -- Outputs: Reviewer net ID, Reviewer Name, Criteria Name, and Score
-DROP PROCEDURE IF EXISTS professor_view_individual_scores;
 CREATE PROCEDURE professor_view_individual_scores (
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -478,7 +459,6 @@ END //
 -- Procedure for creating/ populating the peer reviews for a class
 -- Inputs: Professor NetID, Section Code, and Review Type
 -- Outputs: Populates the Peer Review, Reviewed, and Scored Tables
-DROP PROCEDURE IF EXISTS create_peer_reviews;
 CREATE PROCEDURE create_peer_reviews (
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -523,6 +503,12 @@ creating_peer_reviews:BEGIN
 		OR StartDate BETWEEN start_date AND end_date OR EndDate BETWEEN start_date AND end_date)) THEN 
 		SET error_message = 'Peer Reviews cannot overlap in availability';
         LEAVE creating_peer_reviews;
+	ELSEIF start_date <= (SELECT StartDate FROM Section WHERE SecCode = section_code) OR start_date >= (SELECT EndDate FROM Section WHERE SecCode = section_code) THEN 
+		SET error_message = 'Start date must be within the section time frame';
+        LEAVE creating_peer_reviews;
+	ELSEIF end_date <= (SELECT StartDate FROM Section WHERE SecCode = section_code) OR end_date >= (SELECT EndDate FROM Section WHERE SecCode = section_code) THEN 
+		SET error_message = 'End Date must be within the section time frame';
+        LEAVE creating_peer_reviews;
 	END IF;
     
     -- Iterating through every student in the section 
@@ -542,7 +528,6 @@ creating_peer_reviews:BEGIN
 END //
 
 -- Subset Procedure of the create_peer_reviews Procedure
-DROP PROCEDURE IF EXISTS insert_peer_reviews;
 CREATE PROCEDURE insert_peer_reviews (
 	IN student_id char(9),
     IN team_num INT,
@@ -588,7 +573,6 @@ inserting_peer_and_scored: BEGIN
 END// 
 
 -- Sub Procedure of the create_peer_reviews Procedure
-DROP PROCEDURE IF EXISTS insert_scored_table;
 CREATE PROCEDURE insert_scored_table (
 	IN review_id INT,
     IN review_type char(7),
@@ -625,7 +609,6 @@ END//
 -- Procedure to edit the scores that a student gave to a different student
 -- Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, Reiew Type, @Variable for error message
 -- Outputs: Error Message: 'Success' or condition that was not met
-DROP PROCEDURE IF EXISTS edit_scores_given;
 CREATE PROCEDURE edit_scores_given (
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -666,7 +649,6 @@ END //
 -- Procedure to insert the correct number of teams for a section 
 -- Inputs: Professor NetID, Section Code, Number of Teams for section, @Variable for error message
 -- Outputs: Error Message: 'Success' or the condition that was not met
-DROP PROCEDURE IF EXISTS professor_insert_num_teams;
 CREATE PROCEDURE professor_insert_num_teams (
 	IN professor_netID char(9),
 	IN section_code char(5),
@@ -698,7 +680,6 @@ END //
 -- Procedure to Delete a team from the database, will remove all of the students from the team first 
 -- Inputs: Professor NetID, Section Code, Team Num, @Variable for error message
 -- Outputs: Error Message: 'Success' or the condition that was not met
-DROP PROCEDURE IF EXISTS professor_delete_team;
 CREATE PROCEDURE professor_delete_team (
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -727,7 +708,6 @@ END //
 -- Procedure to get the CriteriaID and info for a section before it it edited
 -- Input: Professor NetID, Section Code, Review Type, @Variable for error message
 -- Output: CriteriaId, Criteria Name, Criteria Description
-DROP PROCEDURE IF EXISTS get_section_criteriaid;
 CREATE PROCEDURE get_section_criteriaid(
     IN professor_netID char(9),
     IN section_code char(5),
@@ -753,7 +733,6 @@ END //
 -- Procedure to edit the criteria
 -- Input: Professor NetID, Section Code, CriteriaID, Updated Criteria Name, updated Criteria Description, Review Type, @Variable for error message
 -- Output: Error Message: 'Success' or condition that was not met
-DROP PROCEDURE IF EXISTS professor_edit_criteria;
 CREATE PROCEDURE professor_edit_criteria (
 	IN professor_netID char(9),
 	IN section_code char(5), 
@@ -783,7 +762,6 @@ END //
 -- Inputs: Professor NetID, Section Code, Criteria Name, Rview Type, @Variable for error message
 -- Outputs: Error Message: 'Success" or condition not met
 -- Disclaimer: Cannot delete a criteria that has been used to create the Peer Reviews and Scored Table
-DROP PROCEDURE IF EXISTS professor_delete_criteria;
 CREATE PROCEDURE professor_delete_criteria (
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -810,7 +788,6 @@ END //
 -- Procedure to allow the professor to change a student's team number
 -- Input: Professor NetID, Section Code, Student NetID, New Team Number, @Variable for error message
 -- Output: Error Message: 'Success' or condition not met
-DROP PROCEDURE IF EXISTS professor_change_student_team;
 CREATE PROCEDURE professor_change_student_team(
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -841,7 +818,6 @@ END //
 -- Procedure to allow the professor to reuse the criteria from a previous review for a new review
 -- Input: Professor NetID, Section Code, Old Criteria Type, New Criteria Type, @Variable for error message
 -- Output: Message: 'Success' or condition that was not met
-DROP PROCEDURE IF EXISTS reuse_criteria;
 CREATE PROCEDURE reuse_criteria (
 	IN professor_netID char(9),
     IN section_code char(5),
@@ -891,7 +867,6 @@ END //
 -- Procedure to retrieve all sections that a professor teaches
 -- Input: Professor NetID
 -- Output: For all sections: Section Code and Section Name
-DROP PROCEDURE IF EXISTS professor_get_sections;
 CREATE PROCEDURE professor_get_sections (
     IN prof_netID char(9))
 BEGIN
@@ -906,7 +881,6 @@ END //
 -- Procedure to calculate the total duration (HH:MM) for a student on a given day
 -- Input: Professor NetID, Student NetID, Section Code, Input Date (YYYY-MM-DD)
 -- Output: Total number of hours tracked for that day (HH:MM)
-DROP PROCEDURE IF EXISTS professor_get_daily_timeslot_hours;
 CREATE PROCEDURE professor_get_daily_timeslot_hours (
     IN prof_netID char(9),
     IN stu_netID char(9),
@@ -934,7 +908,6 @@ END //
 -- Procedure to calculate the cumulative total duration for a student for all timeslots
 -- Input: Professor NetID, Student NetID, Section Code
 -- Output: Cumulative number of hours tracked across all timeslots (HH:MM)
-DROP PROCEDURE IF EXISTS professor_get_cumulative_hours;
 CREATE PROCEDURE professor_get_cumulative_hours (
     IN prof_netID char(9),
     IN stu_netID char(9),
@@ -959,7 +932,6 @@ END //
 -- Procedure to get all students in a given section
 -- Input: Section Code
 -- Output: Student NetIDs
-DROP PROCEDURE IF EXISTS get_section_students;
 CREATE PROCEDURE get_section_students (
 	IN section_code char(5))
 BEGIN
@@ -972,7 +944,6 @@ END //
 -- Procedure to get the number of students in a students team
 -- Inputs: Student NetID, Section Code, @Variable for num in team, @Variable for error message
 -- Outputs: Message: Success or condition not met, Number in Team: 0 if not found, or the number in the team
-DROP PROCEDURE IF EXISTS number_students_in_team;
 CREATE PROCEDURE number_students_in_team (
 	IN student_netID char(9),
     IN section_code char(5),
@@ -998,7 +969,6 @@ END //
 -- Procedure to check whether there is a peer review for the section that is currently available
 -- Inputs: Section Code, @Variable for the message
 -- Outputs: Message: 'Peer Review Available' or reason why not available
-DROP PROCEDURE IF EXISTS check_peer_review_availability;
 CREATE PROCEDURE check_peer_review_availability (
 	IN student_netID char(9),
 	IN section_code char(5),
@@ -1022,7 +992,6 @@ END //
 -- Procedure to add students to a class
 -- Inputs: Student NetID, Student UTDID, Student Name, Section code, @Variable to hold message
 -- Outputs: Message: 'Success' or condition not met
-DROP PROCEDURE IF EXISTS professor_add_students;
 CREATE PROCEDURE professor_add_students (
 	IN student_netID char(9),
     IN student_UTDID char(10),
@@ -1055,7 +1024,6 @@ END //
 -- Procedure to add a student to a team
 -- Inputs: Team Number, Student NetID, Section Code, @Variable for the error message
 -- Outputs: Message: 'Success' or condition not met
-DROP PROCEDURE IF EXISTS add_student_to_team;
 CREATE PROCEDURE add_student_to_team (
 	IN team_num INT,
     IN student_netID char(9),
@@ -1084,11 +1052,12 @@ END //
 -- Procedure for a professor to add their section
 -- Input: Professor NetID, Section Code, Section Name, @Variable to hold message
 -- Output: Message: 'Success' or condition not met
-DROP PROCEDURE IF EXISTS professor_add_section;
 CREATE PROCEDURE professor_add_section (
 	IN professor_netID char(9),
     IN section_code char(5),
     IN section_name varchar(12),
+    IN start_date DATE,
+    IN end_date DATE,
     OUT error_message varchar(100))
 add_section: BEGIN 
 	SET error_message = 'Success';
@@ -1102,15 +1071,29 @@ add_section: BEGIN
 	ELSEIF NOT EXISTS (SELECT * FROM Professor WHERE ProfNetID = professor_netID) THEN 
 		SET error_message = 'Professor NetID does not exist in the system';
         LEAVE add_section;
+	ELSEIF end_date >= start_date THEN 
+		SET error_message = 'Start date must be before end date';
+        LEAVE add_section;
 	END IF;
     
-    INSERT INTO Section (SecCode, SecName) 
-    VALUES (section_code, section_name);
+    INSERT INTO Section (SecCode, SecName.StartDate, EndDate) 
+    VALUES (section_code, section_name, start_date, end_date);
     
     INSERT INTO Teaches (ProfNetID, SecCode)
     VALUES (professor_netID, section_code);
 
 END // 
+
+
+-- Procedure to check get the start and end dates for the section
+-- Inputs: Section Code
+-- Outputs: Start Date, End Date 
+CREATE PROCEDURE get_section_timeframe (
+	IN section_code char(5))
+BEGIN
+	SELECT StartDate, EndDate FROM Section WHERE SecCode = section_code;
+
+END //
 
 
 DELIMITER ;
