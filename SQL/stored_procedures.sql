@@ -1119,4 +1119,59 @@ BEGIN
 END //
 
 
+-- Procedure to check what needs to be shown on the student peer review page
+-- Intputs: Student NetID, Section Code
+-- Outputs: 
+-- The student has not completed the peer review:  'Peer Review needs to be completed'
+-- The peer review window is still open: 'Peer Reviews completed, waiting until the end of the review session to view average scores'
+-- Show the average scores: 'Average scores for the last review type: (review type)'
+CREATE PROCEDURE student_peer_review_page ( 
+    IN student_netID char(9),
+    IN section_code char(5),
+    OUT error_message varchar(150))
+pr_page: BEGIN 
+    DECLARE pr_done BOOLEAN DEFAULT FALSE;
+    DECLARE in_waiting BOOLEAN DEFAULT FALSE;
+    DECLARE show_average BOOLEAN DEFAULT FALSE;
+    DECLARE review_type CHAR(7);
+
+    SET error_message = '';
+
+    IF EXISTS (SELECT 1 FROM PeerReview pr JOIN Scored s ON pr.ReviewID = s.ReviewID AND pr.SecCode = s.SecCode
+        WHERE pr.ReviewerID = student_netID AND s.Score IS NULL AND pr.SecCode = section_code AND CURDATE() BETWEEN pr.StartDate AND pr.EndDate) THEN
+        
+        SET pr_done = TRUE;
+    END IF;
+
+    IF NOT pr_done AND EXISTS (SELECT 1 FROM PeerReview pr WHERE pr.ReviewerID = student_netID 
+		AND pr.SecCode = section_code AND CURDATE() BETWEEN pr.StartDate AND pr.EndDate 
+		AND NOT EXISTS (SELECT 1 FROM Scored s WHERE s.ReviewID = pr.ReviewID AND s.SecCode = pr.SecCode AND s.Score IS NULL)) THEN
+        
+        SET in_waiting = TRUE;
+    END IF;
+
+    IF NOT pr_done AND NOT in_waiting AND EXISTS (SELECT 1 FROM PeerReview pr_latest WHERE pr_latest.SecCode = section_code
+          AND pr_latest.EndDate = (SELECT MAX(EndDate) FROM PeerReview WHERE SecCode = section_code AND EndDate <= CURDATE())
+          AND NOT EXISTS (SELECT 1 FROM PeerReview pr_next WHERE pr_next.SecCode = section_code AND pr_next.StartDate > CURDATE() AND pr_next.StartDate = (
+		SELECT MIN(StartDate) FROM PeerReview WHERE SecCode = section_code AND StartDate > pr_latest.EndDate))) THEN
+        
+        SET show_average = TRUE;
+
+        SELECT ReviewType INTO review_type FROM PeerReview WHERE SecCode = section_code 
+          AND EndDate = (SELECT MAX(EndDate) FROM PeerReview WHERE SecCode = section_code AND EndDate <= CURDATE()) LIMIT 1;
+    END IF;
+
+
+    IF pr_done THEN
+        SET error_message = 'Peer Review needs to be completed';
+    ELSEIF in_waiting THEN 
+        SET error_message = 'Peer Reviews completed, waiting until the end of the review session to view average scores. To make edits to score, email professor';
+    ELSEIF show_average THEN 
+        SET error_message = CONCAT('Average scores for the last review type: ', review_type);
+    ELSE
+        SET error_message = 'No active or upcoming peer reviews found';
+    END IF;
+
+END //
+
 DELIMITER ;
