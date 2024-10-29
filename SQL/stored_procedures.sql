@@ -51,15 +51,18 @@ change_stu_password: BEGIN
     
 	IF user_count < 1 THEN 
 		SET error_message = 'Incorrect username or password';
+        LEAVE change_stu_password;
 	ELSEIF old_student_password = new_student_password THEN 
 		SET error_message = 'Password cannot be the same';
+        LEAVE change_stu_password;
 	ELSEIF new_student_password = (SELECT StuUTDID FROM Student WHERE StuNetID = stu_username) THEN 
 		SET error_message = 'Password cannot be UTD ID';
-	ELSE 
-		UPDATE Student
-		SET StuPassword = new_student_password
-		WHERE StuNetID = stu_username;
+        LEAVE change_stu_password;
 	END IF;
+    
+	UPDATE Student
+	SET StuPassword = new_student_password
+	WHERE StuNetID = stu_username;
 
 END //
 
@@ -77,7 +80,13 @@ inserting_timeslot:BEGIN
 	SET error_message = 'Success';
     
     -- Checking constraints: description longer than 30 character, date in last 3 days and not in future, duration in correct format
-    IF (LENGTH(ts_description) < 30) THEN
+    IF NOT EXISTS (SELECT * FROM Attends WHERE StuNetID = student_netID) THEN 
+		SET error_message = 'Not a member of a section';
+        LEAVE inserting_timeslot;
+	ELSEIF EXISTS (SELECT * FROM Timeslot WHERE StuNetId = student_netID AND TSDate = ts_date) THEN 
+		SET error_message = 'Only one timeslot allowed per day, to add more time Edit Timeslot';
+        LEAVE inserting_timeslot;
+    ELSEIF (LENGTH(ts_description) < 30) THEN
 		SET error_message = 'Description must be at least 30 characters';
         LEAVE inserting_timeslot;
     ELSEIF (ts_date <= NOW() - INTERVAL 3 DAY) THEN
@@ -88,6 +97,15 @@ inserting_timeslot:BEGIN
         LEAVE inserting_timeslot;
     ELSEIF (ts_duration NOT REGEXP '^(2[0-3]|[01][0-9]):([0-5][0-9])$') THEN 
 		SET error_message = 'Durations must be in the form HH:MM and cannot 24 or more hours or more than 60 minutes.';
+        LEAVE inserting_timeslot;
+	ELSEIF (TIME_TO_SEC(STR_TO_DATE(ts_duration, '%H:%i')) < TIME_TO_SEC('00:15')) THEN
+        SET error_message = 'Duration must be at least 15 minutes';
+        LEAVE inserting_timeslot;
+    ELSEIF (MINUTE(STR_TO_DATE(ts_duration, '%H:%i')) NOT IN (0, 15, 30, 45)) THEN
+        SET error_message = 'Duration must be rounded to the nearest 15 minutes';
+        LEAVE inserting_timeslot;
+	ELSEIF ts_date NOT BETWEEN (SELECT StartDate From Section WHERE SecCode = (SELECT SecCode FROM Attends WHERE StuNetID = student_netID)) AND (SELECT EndDate From Section WHERE SecCode = (SELECT SecCode FROM Attends WHERE StuNetID = student_netID)) THEN 
+		SET error_message = 'Timeslot date must be within the section timeframe';
         LEAVE inserting_timeslot;
     END IF;
     
@@ -110,17 +128,23 @@ edit_timeslot:BEGIN
 	SET error_message = 'Success';
     
     -- Checking constraints: description longer than 30 character, date in last 3 days and not in future, duration in correct format
-    IF (LENGTH(updated_description) < 30) THEN
+    IF NOT EXISTS (SELECT * FROM Timeslot WHERE TSDate = ts_date AND StuNetID = student_netID) THEN 
+		SET error_message = 'Timeslot does not exist for this date';
+		LEAVE edit_timeslot;
+    ELSEIF (LENGTH(updated_description) < 30) THEN
 		SET error_message = 'Description must be at least 30 characters';
         LEAVE edit_timeslot;
     ELSEIF (ts_date <= NOW() - INTERVAL 3 DAY) THEN
-		SET error_message = 'Can only insert timeslots within the past 3 days';
-        LEAVE edit_timeslot;
-    ELSEIF (ts_date > NOW()) THEN
-		SET error_message = 'Cannot add timeslots for future dates';
+		SET error_message = 'Can only edit timeslots within the past 3 days';
         LEAVE edit_timeslot;
     ELSEIF (updated_duration NOT REGEXP '^(2[0-3]|[01][0-9]):([0-5][0-9])$') THEN 
 		SET error_message = 'Durations must be in the form HH:MM and cannot 24 or more hours or more than 60 minutes.';
+        LEAVE edit_timeslot;
+	ELSEIF (TIME_TO_SEC(STR_TO_DATE(ts_duration, '%H:%i')) < TIME_TO_SEC('00:15')) THEN
+        SET error_message = 'Duration must be at least 15 minutes';
+        LEAVE edit_timeslot;
+    ELSEIF (MINUTE(STR_TO_DATE(ts_duration, '%H:%i')) NOT IN (0, 15, 30, 45)) THEN
+        SET error_message = 'Duration must be rounded to the nearest 15 minutes';
         LEAVE edit_timeslot;
     END IF;
     
@@ -166,7 +190,6 @@ BEGIN
     SET student_total = (SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
     FROM Timeslot
     WHERE StuNetID = student_netID);
-    
     
 END //
 
