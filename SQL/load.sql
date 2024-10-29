@@ -42,10 +42,10 @@ INSERT INTO Professor (ProfNetID, ProfUTDID, ProfName, ProfPassword) VALUES
     ('cnj160789', '2021329789', 'Chloe Jensen', '2021329789'); 
 
 -- Inserting the data into the Section Table
-INSERT INTO Section (SecCode, SecName) VALUES 
-(84745, 'CS 4485.0W1'),
-(83909, 'CS 4485.0W2'),
-(83568, 'CS 4389.001');
+INSERT INTO Section (SecCode, SecName, StartDate, EndDate) VALUES 
+(84745, 'CS 4485.0W1', '2024-08-21', '2024-12-20'),
+(83909, 'CS 4485.0W2', '2024-08-21', '2024-12-20'),
+(83568, 'CS 4389.001', '2024-08-21', '2024-12-20');
 
 -- Inserting the data into the Teaches Table
 INSERT INTO Teaches (ProfNetID, SecCode) VALUES 
@@ -140,16 +140,21 @@ INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration) VALUES
 ('pmr190299', '2024-09-21', 'Worked on the project proposal introduction.', '0:30'),
 ('pmr190299', '2024-09-23', 'Met with team, presented what we\'d all done so far, talked about next steps.', '1:00');
 
--- Inserting the data into the Peer Review Table
 
-INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID) VALUES
-(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),(84745, 'Midterm', 'axa190000'),
-(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),(84745, 'Midterm', 'dxa190111'),
-(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),(84745, 'Midterm', 'sib170121'),
-(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),(84745, 'Midterm', 'nxb200088'),
-(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444'),(84745, 'Midterm', 'cab160444');
- 
- 
+
+-- Inserting the data into the Criteria Table
+INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription, ReviewType) VALUES
+(84745, 'Contributing to Team''s Work', 'How well does the person contributions improve the team''s work? Do they help their teammates who are having a difficult time completing their work?', 'Midterm'),
+(84745, 'Interacting with Teammates', 'Do they show an interest in their teammates'' ideas? Do they provide encouragement? Do they ask for feedback and use suggestions?', 'Midterm'),
+(84745, 'Keeping Team on Track', 'Do they watch the conditions affecting the team and monitor the progress? Do they make sure the team is making appropriate progress? Do they give feedback on a timely manner?', 'Midterm');
+
+
+INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID, StartDate, EndDate) VALUES
+(84745, 'Midterm', 'axa190000', '2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),
+(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),
+(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),
+(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),
+(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31');
  
  
  -- Inserting the data into the Reviewed Table
@@ -162,11 +167,6 @@ INSERT INTO Reviewed (StuNetID, ReviewID, SecCode) VALUES
 
 
 
--- Inserting the data into the Criteria Table
-INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription, ReviewType) VALUES
-(84745, 'Contributing to Team''s Work', 'How well does the person contributions improve the team''s work? Do they help their teammates who are having a difficult time completing their work?', 'Midterm'),
-(84745, 'Interacting with Teammates', 'Do they show an interest in their teammates'' ideas? Do they provide encouragement? Do they ask for feedback and use suggestions?', 'Midterm'),
-(84745, 'Keeping Team on Track', 'Do they watch the conditions affecting the team and monitor the progress? Do they make sure the team is making appropriate progress? Do they give feedback on a timely manner?', 'Midterm');
 
 
 -- Inserting the data into the Scored Table
