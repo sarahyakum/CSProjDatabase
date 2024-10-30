@@ -102,7 +102,7 @@
   - **get_section_students** : Retrieves all students in a given section
       - *Inputs:* Section Code
       - *Outputs:* Student NetIDs
-      
+
 
 
 ## Professor 
@@ -173,14 +173,6 @@
       - *Inputs:* Professor NetID
       - *Outputs:* Section Code and Section Name, for all sections
 
-  - **professor_get_daily_timeslot_hours** : Calculates the total duration for a student on a given day
-      - *Inputs:* Professor NetID, Student NetID, Section Code, Date (YYYY-MM-DD)
-      - *Outputs:* Total number of hours tracked for that day (HH:MM)
-      
-  - **professor_get_cumulative_hours** : Calculates the cumulative duration for all timeslots of a student 
-      - *Inputs:* Professor NetID, Student NetID, Section Code
-      - *Outputs:* Cumulative number of hours tracked across all timeslots
-
   - **professor_add_students** : Allows the professor to add students to a section
     - *Inputs:* Student NetID, Student UTDID, Student Name, Section Code, @Variable for message
     - *Outputs:* Message: 'Success' or condition not met
@@ -192,7 +184,15 @@
   - **professor_add_section** : Allows the professor to add their sections
       - *Inputs:* Professor NetID, Section Code, Section Name, Start Date, End Date, @Variable for message
       - *Outputs:* Message: 'Successs' or condition not met
-   
+
+  - **professor_get_incomplete_reviews** : Returns the students who haven't completed a specific peer review
+      - *Inputs:* Section Code, Review Type
+      - *Outputs:* Student NetIDs of students who have incomplete peer reviews
+
+  - **professor_edit_timeslot** : Allows the professor to edit a student's timeslot
+      - *Inputs:* Student NetID, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Duration, and a variable to hold the error message
+      - *Outputs:* Error Message: 'Success' or a description of which condition it violated
+
 
 *Disclaimer*: For a professor to initialize everything at the start of the semester they need to do it in this order:
   - professor_add_section
