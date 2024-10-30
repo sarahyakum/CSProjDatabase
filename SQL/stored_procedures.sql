@@ -382,7 +382,7 @@ prof_change_pass: BEGIN
 	DECLARE user_count INT;
     SET error_message = 'Success';
     
-	IF prof_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
+	IF prof_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
         SET error_message = 'Username must be alphanumeric';
         LEAVE prof_change_pass;
 	END IF;
@@ -397,7 +397,7 @@ prof_change_pass: BEGIN
 	ELSEIF old_professor_password = new_professor_password THEN 
 		SET error_message = 'Password cannot be the same';
         LEAVE prof_change_pass;
-	ELSEIF new_professor_password = (SELECT ProfUTDID FROM Professor WHERE ProfNetID = professor_username) THEN 
+	ELSEIF new_professor_password = (SELECT ProfUTDID FROM Professor WHERE ProfNetID = prof_username) THEN 
 		SET error_message = 'Password cannot be UTD ID';
         LEAVE prof_change_pass;
 	END IF;
