@@ -901,57 +901,6 @@ BEGIN
 END //
 
 
--- Procedure to calculate the total duration (HH:MM) for a student on a given day
--- Input: Professor NetID, Student NetID, Section Code, Input Date (YYYY-MM-DD)
--- Output: Total number of hours tracked for that day (HH:MM)
-CREATE PROCEDURE professor_get_daily_timeslot_hours (
-    IN prof_netID char(9),
-    IN stu_netID char(9),
-    IN section_code char(5),
-    IN input_date DATE)
-BEGIN
-    DECLARE total_minutes INT DEFAULT 0;
-    DECLARE total_duration varchar(5);
-
-    SELECT SUM(TIME_TO_SEC(STR_TO_DATE(TSDuration, '%H:%i')) / 60) INTO total_minutes
-    FROM professor_student_timeslots
-    WHERE ProfNetID = prof_netID 
-      AND StuNetID = stu_netID 
-      AND SecCode = section_code 
-      AND TSDate = input_date;
-
-    -- Converts total minutes back to HH:MM format
-    SET total_duration = CONCAT(FLOOR(total_minutes / 60), ':', LPAD(total_minutes % 60, 2, '0'));
-
-    -- Returns the total duration
-    SELECT total_duration AS TotalDuration;
-END //
-
-
--- Procedure to calculate the cumulative total duration for a student for all timeslots
--- Input: Professor NetID, Student NetID, Section Code
--- Output: Cumulative number of hours tracked across all timeslots (HH:MM)
-CREATE PROCEDURE professor_get_cumulative_hours (
-    IN prof_netID char(9),
-    IN stu_netID char(9),
-    IN section_code char(5))
-BEGIN
-    DECLARE total_minutes INT DEFAULT 0;
-    DECLARE total_duration varchar(5);
-
-    SELECT SUM(TIME_TO_SEC(STR_TO_DATE(TSDuration, '%H:%i')) / 60) INTO total_minutes
-    FROM professor_student_timeslots
-    WHERE ProfNetID = prof_netID 
-      AND StuNetID = stu_netID 
-      AND SecCode = section_code;
-
-    -- Converts total minutes back to HH:MM format
-    SET total_duration = CONCAT(FLOOR(total_minutes / 60), ':', LPAD(total_minutes % 60, 2, '0'));
-
-    -- Returns the total duration
-    SELECT total_duration AS TotalDuration;
-END //
-
 -- Procedure to get all students in a given section
 -- Input: Section Code
 -- Output: Student NetIDs
@@ -1163,7 +1112,7 @@ pr_page: BEGIN
 
 
     IF pr_done THEN
-        SET error_message = 'Peer Review needs to be completed';
+        SET error_message = CONCAT('Peer Review needs to be completed of type: ', review_type);
     ELSEIF in_waiting THEN 
         SET error_message = 'Peer Reviews completed, waiting until the end of the review session to view average scores. To make edits to score, email professor';
     ELSEIF show_average THEN 
@@ -1173,5 +1122,54 @@ pr_page: BEGIN
     END IF;
 
 END //
+
+
+-- Procedure to return the students who didn't complete the peer review in time
+-- Inputs: Section Code, Review Type
+-- Outputs: Student NetIDs of students who didn't/haven't completed the review
+CREATE PROCEDURE professor_get_incomplete_reviews (
+    IN section_code char(5),
+    IN review_type char(7))
+BEGIN
+    SELECT Pr.ReviewerID AS StuNetID
+    FROM PeerReview Pr
+    JOIN Scored Sc ON Sc.ReviewID = Pr.ReviewID
+    WHERE Pr.SecCode = section_code AND Pr.ReviewType = review_type AND Sc.Score IS NULL;
+END //
+
+
+-- Procedure for a professor to edit a student's timeslot
+-- Inputs: Student NetID, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Duration, and a variable to hold the error message
+-- Outputs: Error Message: 'Success' or a description of which condition it violated
+CREATE PROCEDURE professor_edit_timeslot (
+    IN student_netID char(9),
+    IN ts_date DATE,
+    IN updated_description varchar(200),
+    IN updated_duration char(5),
+    OUT error_message varchar(100))
+edit_timeslot:BEGIN
+    SET error_message = 'Success';
+    
+    -- Checking constraints: description longer than 30 character, duration in correct format
+   IF (LENGTH(updated_description) < 30) THEN
+        SET error_message = 'Description must be at least 30 characters';
+        LEAVE edit_timeslot;
+    ELSEIF (updated_duration NOT REGEXP '^(2[0-3]|[01][0-9]):([0-5][0-9])$') THEN 
+        SET error_message = 'Durations must be in the form HH:MM and cannot 24 or more hours or more than 60 minutes.';
+        LEAVE edit_timeslot;
+    ELSEIF (TIME_TO_SEC(STR_TO_DATE(ts_duration, '%H:%i')) < TIME_TO_SEC('00:15')) THEN
+        SET error_message = 'Duration must be at least 15 minutes';
+        LEAVE edit_timeslot;
+    ELSEIF (MINUTE(STR_TO_DATE(ts_duration, '%H:%i')) NOT IN (0, 15, 30, 45)) THEN
+        SET error_message = 'Duration must be rounded to the nearest 15 minutes';
+        LEAVE edit_timeslot;
+    END IF;
+    
+    UPDATE Timeslot
+    SET TSDuration = updated_duration, TSDescription = updated_description
+    WHERE StuNetID = student_netID AND TSDate = ts_date;
+
+END //
+
 
 DELIMITER ;
