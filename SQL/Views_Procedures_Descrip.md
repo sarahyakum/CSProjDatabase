@@ -80,11 +80,11 @@
 
   - **student_total_time** : Adds up the total time the student has spent on the project  
       - *Inputs:* Student NetID   
-      - *Outputs:* The total time in minutes
+      - *Outputs:* The total time in HH:MM
 
   - **student_time_in_range** : Adds up the total time the student has spent during a given date range   
       - *Inputs:* Student NetID, Start Date, End Date (Dates in SQL are in format 'YYYY-MM-DD')   
-      - *Outputs:* The total time in minutes for that range
+      - *Outputs:* The total time in HH:MM for that range
 
   - **student_timeslot_by_date** : Retrieves all timeslots for a student on a given date
       - *Inputs:* Student NetID, Timeslot Date
@@ -192,6 +192,10 @@
   - **professor_edit_timeslot** : Allows the professor to edit a student's timeslot
       - *Inputs:* Student NetID, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Duration, and a variable to hold the error message
       - *Outputs:* Error Message: 'Success' or a description of which condition it violated
+
+  - **professor_sign_up** : Allows a professor to sign up for the system (sets password to UTD ID by default)
+      - *Inputs:* Professor NetID, UTD ID, and Name
+      - *Outputs:* Error Message: 'Success' or a description of what went wrong
 
 
 *Disclaimer*: For a professor to initialize everything at the start of the semester they need to do it in this order:
