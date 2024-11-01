@@ -181,35 +181,40 @@ END //
 
 -- Procedure to return the total time the student has spent for the project
 -- Input: Student NetID, Start Date, End Date
--- Output: Total time in Minutes
+-- Output: Total time in HH:MM
+-- CALL student_total_time('student_netID', @student_total); SELECT @student_total
 CREATE PROCEDURE student_total_time (
 	IN student_netID char(9),
-    OUT student_total INT)
+    OUT student_total varchar(10))
 BEGIN 
-    
-    SET student_total = (SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
+    DECLARE total_minutes INT DEFAULT 0;
+
+    SET total_minutes = (SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
     FROM Timeslot
     WHERE StuNetID = student_netID);
-    
+
+    SET student_total = CONCAT(FLOOR(total_minutes / 60), ':', LPAD(total_minutes % 60, 2, '0'));
 END //
 
 
--- Procedure to return the time has spent on the project within a certain date range
+-- Procedure to return the time a student has spent on the project within a certain date range
 -- Input: Student NetID
--- Output: Total time in Minutes
--- CALL student_total_time('student_netID', 'YYYY-MM-DD', 'YYYY-MM-DD', @TotalTime); SELECT @TotalTime;
+-- Output: Total time in HH:MM
+-- CALL student_time_in_range('student_netID', 'YYYY-MM-DD', 'YYYY-MM-DD', @student_total); SELECT @student_total;
 CREATE PROCEDURE student_time_in_range (
 	IN student_netID char(9),
     IN startDate DATE,
     IN endDate DATE,
-    OUT student_total INT)
+    OUT student_total varchar(10))
 BEGIN 
-	SET student_total = 0;
+    DECLARE total_minutes INT DEFAULT 0;
     
-    SELECT SUM( HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
-    INTO student_total
+    SELECT SUM(HOUR(SEC_TO_TIME(TIME_TO_SEC(TSDuration))) * 60 + MINUTE(SEC_TO_TIME(TIME_TO_SEC(TSDuration))))
+    INTO total_minutes
     FROM Timeslot
     WHERE StuNetID = student_netID AND TSDate BETWEEN startDate AND endDate;
+
+    SET student_total = CONCAT(FLOOR(total_minutes / 60), ':', LPAD(total_minutes % 60, 2, '0'));
 END //
 
 
@@ -1172,4 +1177,53 @@ edit_timeslot:BEGIN
 END //
 
 
+-- Procedure to allow a professor to sign up for the system
+-- Inputs: Professor NetID, UTD ID, and Name
+-- Outputs: Error Message: 'Success' or a description of what went wrong
+CREATE PROCEDURE professor_sign_up (
+    IN prof_netID char(9),
+    IN prof_utdID char(10),
+    IN prof_name varchar(30))
+sign_up:BEGIN
+    SET error_message = 'Success';
+
+    IF prof_netID NOT REGEXP '^[a-zA-Z]{3}[0-9]{6}$' THEN 
+		SET error_message = 'Professor NetID not in correct format';
+        LEAVE sign_up;
+	ELSEIF prof_utdID NOT REGEXP '^[0-9]{10}$' THEN 
+		SET error_message = 'Professor UTDID not in correct format';
+        LEAVE sign_up;
+    END IF;
+
+    INSERT INTO Professor (ProfNetID, ProfUTDID, ProfName, )
+
+
+
+
+
+END //
+
+
+
+d_student: BEGIN
+	SET error_message = 'Success';
+    
+    IF student_netID NOT REGEXP '^[a-zA-Z]{3}[0-9]{6}$' THEN 
+		SET error_message = 'Student NetID not in correct format';
+        LEAVE add_student;
+	ELSEIF student_UTDID NOT REGEXP '^[0-9]{10}$' THEN 
+		SET error_message = 'Student UTDID not in correct format';
+        LEAVE add_student;
+	ELSEIF NOT EXISTS (SELECT * FROM Section WHERE SecCode = section_code) THEN 
+		SET error_message = 'Section does not exist';
+        LEAVE add_student;
+	END IF;
+    
+    INSERT INTO Student (StuNetID, StuUTDID, StuName, StuPassword)
+    VALUES (student_netID, student_UTDID, student_name, student_UTDID);
+    
+    INSERT INTO Attends (StuNetID, SecCode) 
+    VALUES (student_netID, section_code);
+
+END //
 DELIMITER ;
