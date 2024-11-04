@@ -192,10 +192,16 @@
   - **professor_edit_timeslot** : Allows the professor to edit a student's timeslot
       - *Inputs:* Student NetID, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Duration, and a variable to hold the error message
       - *Outputs:* Error Message: 'Success' or a description of which condition it violated
+   
+### Stretch Goals
 
-  - **professor_sign_up** : Allows a professor to sign up for the system (sets password to UTD ID by default)
-      - *Inputs:* Professor NetID, UTD ID, and Name
-      - *Outputs:* Error Message: 'Success' or a description of what went wrong
+  - **timetrack_student_emails** : Returns the emails for the students who have not entered any timeslots between a inputted date and the current date
+      - *Inputs:* Section Code, Input Date (Most likely the start of the week)
+      - *Outputs:* Student emails who have not added timeslots in time frame
+   
+  - **peerReviews_student_emails** : Returns the emails for the students who have not completed the current peer review for a section
+      - *Inputs:* Section Code
+      - *Outputs:* Student emails who have not completed the peer reviews 
 
 
 *Disclaimer*: For a professor to initialize everything at the start of the semester they need to do it in this order:
