@@ -99,6 +99,7 @@ INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration) VALUES
 ('axa190000', '2024-10-29', 'Watched videos on the set up for the web pages in C#', '1:15'),
 ('axa190000', '2024-10-31', 'Met with team members to discuss next steps.', '2:00'),
 ('axa190000', '2024-11-01', 'Worked on the student front end framework', '2:00'),
+('axa190000', '2024-11-02', 'Worked with my teammate to try and walk through some of the front end stuff', '1:00'),
 ('axa190000', '2024-11-03', 'Made the bare bones student web pages and got the files set up correctly', '4:00'),
 ('axa190000', '2024-11-04', 'Made the student login page', '0:45'),
 ('axa190000', '2024-11-06', 'Made the student timesheet week view', '1:30'),
