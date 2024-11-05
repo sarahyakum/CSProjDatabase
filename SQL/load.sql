@@ -1,5 +1,15 @@
 USE seniordesignproject; 
 
+/*
+	Written by Emma Hockett for CS 4485.0W1, Senior Design Project, Started October 14, 2024.
+        NetID: ech210001
+        
+	Dummy Data to be loaded into the database for testing purposes. Inserts some information into every table in the DB.
+    Must be run after the create.sql file.
+    
+    Note: To try and create peer reviews comment out the sections that insert into PeerReview and Scored but leave the criteria
+*/
+
 -- Inserting the data into the Student Table
 INSERT INTO Student (StuNetID, StuUTDID, StuName, StuPassword) VALUES 
 ('axa190000', 2021504000, 'Prakash Acharya', 2021504000),
@@ -150,11 +160,11 @@ INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription, ReviewType) VA
 
 
 INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID, StartDate, EndDate) VALUES
-(84745, 'Midterm', 'axa190000', '2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-31'),
-(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-31'),
-(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-31'),
-(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-31'),
-(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-31');
+(84745, 'Midterm', 'axa190000', '2024-10-20', '2024-10-28'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'axa190000','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'axa190000','2024-10-28', '2024-10-28'),(84745, 'Midterm', 'axa190000','2024-10-28', '2024-10-28'),
+(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-28', '2024-10-28'),
+(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),
+(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),
+(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-8'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28');
  
  
  -- Inserting the data into the Reviewed Table
