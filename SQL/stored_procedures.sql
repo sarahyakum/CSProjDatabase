@@ -1,8 +1,32 @@
+/*
+	Written by Emma Hockett and Darya Anbar for CS 4485.0W1, Senior Design Project, Started October 13, 2024
+    Net ID: ech210001 and dxa200020
+    
+    Statements that are used to create all of the stored procedures for the database. Each procedure represents an interaction between the front end and the database.
+    Must be run after the create.sql file and create_views.sql
+    
+    Student Procedures: 
+		General: check_student_login, change_student_passwordm student_get_team_members, number_student_in_team, get_section_timeframe
+        Time Tracking: student_insert_timeslot, student_edit_timeslot, student_edit_timeslot
+        Peer Review: student_insert_score, student_get_peer_review_criteria, student_view_averages, student_peer_review_page
+        
+	General Procedures: student_total_time, student_time_in_range, student_timeslot_by_date, student_timeslot_by_week, student_timeslot_by_month, get_section_student
+    
+    Professor Procedures: 
+		General: check_professor_login, change_professor_password, professor_insert_num_teams, professor_delete_team, professor_change_student_team, professor_get_sections, professor_add_students, 
+			add_student_to_team, professor_add_section, 
+        Time Tracking: professor_edit_timeslot, timetrack_student_emails
+        Peer Review: get_section_criteriaid, professor_create_criteria, professor_edit_criteria, professor_delete_criteria, create_peer_reviews, professor_view_averages, professor_view_individual_scores,
+			edit_scores_given, reuse_criteria, professor_get_incomplete_reviews, peerReview_student_emails
+*/
+
+
 USE seniordesignproject;
 
 DELIMITER //
 
--- Procedure to check whether the student's attempted username and password are in the system (Emma)
+-- Written by Emma Hockett October 13, 2024
+-- Procedure to check whether the student's attempted username and password are in the system 
 -- Input: Student username, Student password, A way for the error message to be returned
 -- Output: Error Message: 'Success' or 'Incorrect username or password'   
 CREATE PROCEDURE check_student_login (
@@ -13,22 +37,21 @@ check_stu_login:BEGIN
 	DECLARE user_count INT;
     SET error_message = 'Success';
     
+    -- Checks whether the student is a member of the database, if they are and this is their first login prompt to change password
 	IF stu_input_username NOT REGEXP '^[a-zA-Z0-9]+$' THEN
         SET error_message = 'Username must be alphanumeric';
         LEAVE check_stu_login;
 	ELSEIF NOT EXISTS (SELECT * FROM Student WHERE StuNetID = stu_input_username AND StuPassword = stu_input_password) THEN 
 		SET error_message = 'Incorrect username or password';
         LEAVE check_stu_login;
-	END IF;
-    
-    
-	IF stu_input_password = (SELECT StuUTDID FROM Student WHERE StuNetID = stu_input_username) THEN 
+	ELSEIF stu_input_password = (SELECT StuUTDID FROM Student WHERE StuNetID = stu_input_username) THEN 
 		SET error_message = 'Change password';
 	END IF;
 END //
 
 
--- Procedure to change student password (Emma)
+-- Written by Emma Hockett October 13, 2024
+-- Procedure to change student password 
 -- Input: Student Net ID, Old Password, New Password, A variable for the error message to be returned as
 -- Output: Error Message: 'Success', 'Incorrect username or password', or 'Password cannot be the same'
 CREATE PROCEDURE change_student_password (
@@ -49,6 +72,7 @@ change_stu_password: BEGIN
     FROM Student
     WHERE StuNetID = stu_username AND StuPassword = old_student_password;
     
+    -- Prevents certain passwords: the same as the last password, or their UTDID
 	IF user_count < 1 THEN 
 		SET error_message = 'Incorrect username or password';
         LEAVE change_stu_password;
@@ -67,7 +91,8 @@ change_stu_password: BEGIN
 END //
 
 
--- Procedure for inserting timeslots into the table, descipriotn >= 30 characters, Within past 3 days and not in future (Emma)
+-- Written by Emma Hockett, October 13, 2024
+-- Procedure for inserting timeslots into the table, descipriotn >= 30 characters, Within past 3 days and not in future
 -- Inputs: Student Net ID, Timeslot date, description, duration, and a variable to hold the error message
 -- Output: Error Message: 'Success' or a description of which condition it violated
 CREATE PROCEDURE student_insert_timeslot (
@@ -79,7 +104,7 @@ CREATE PROCEDURE student_insert_timeslot (
 inserting_timeslot:BEGIN
 	SET error_message = 'Success';
     
-    -- Checking constraints: description longer than 30 character, date in last 3 days and not in future, duration in correct format
+    -- Checking constraints: Description longer than 30 characters, Date in past 3 days, Duration in correct format, Duration not unreasonable, and in Increments of 15 minutes
     IF NOT EXISTS (SELECT * FROM Attends WHERE StuNetID = student_netID) THEN 
 		SET error_message = 'Not a member of a section';
         LEAVE inserting_timeslot;
@@ -115,7 +140,8 @@ inserting_timeslot:BEGIN
 END //
 
 
--- Procedure to allow students to edit their timeslot, have to be within past 3 days and the description has to be longer than 30 characters (Emma)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to allow students to edit their timeslot, have to be within past 3 days and the description has to be longer than 30 characters 
 -- Inputs: Student NetId, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Deuration, and a variable to hold the error message
 -- Outputs: Error Message: 'Success' or a description of which condition it violated
 CREATE PROCEDURE student_edit_timeslot (
@@ -127,7 +153,7 @@ CREATE PROCEDURE student_edit_timeslot (
 edit_timeslot:BEGIN 
 	SET error_message = 'Success';
     
-    -- Checking constraints: description longer than 30 character, date in last 3 days and not in future, duration in correct format
+    -- Checking constraints: Checking the constraints on the desciption and duartion before allowing any changes 
     IF NOT EXISTS (SELECT * FROM Timeslot WHERE TSDate = ts_date AND StuNetID = student_netID) THEN 
 		SET error_message = 'Timeslot does not exist for this date';
 		LEAVE edit_timeslot;
@@ -155,7 +181,8 @@ edit_timeslot:BEGIN
 END //
 
 
--- Procedure to allow students to delete timeslots that are within the three previous days (Emma)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to allow students to delete timeslots that are within the three previous days
 -- Inputs: Student NetID, Timeslot Date, and a variable to hold the error message
 -- Outputs: Error Message: 'Success' or 'Must be within the previous 3 days to delete'
 CREATE PROCEDURE student_delete_timeslot (
@@ -179,7 +206,8 @@ delete_timeslot: BEGIN
 END //
 
 
--- Procedure to return the total time the student has spent for the project (Emma and Darya)
+-- Written by Darya Anbar and Emma Hockett, Started October 14, 2024
+-- Procedure to return the total time the student has spent for the project
 -- Input: Student NetID, Start Date, End Date
 -- Output: Total time in Minutes
 CREATE PROCEDURE student_total_time (
@@ -194,7 +222,8 @@ BEGIN
 END //
 
 
--- Procedure to return the time has spent on the project within a certain date range (Emma and Darya)
+-- Written by Darya Anbar and Emma Hockett, Started October 15, 2024
+-- Procedure to return the time has spent on the project within a certain date range
 -- Input: Student NetID
 -- Output: Total time in Minutes
 -- CALL student_total_time('student_netID', 'YYYY-MM-DD', 'YYYY-MM-DD', @TotalTime); SELECT @TotalTime;
@@ -213,8 +242,8 @@ BEGIN
 END //
 
 
-
--- Procedure to retrieve all timeslots for a specific student on a specific date (Darya)
+-- Written by Darya Anbar, Started October 16, 2024
+-- Procedure to retrieve all timeslots for a specific student on a specific date 
 -- Input: Student NetID, Timeslot Date ('YYYY-MM-DD')
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
 CREATE PROCEDURE student_timeslot_by_date(
@@ -227,8 +256,8 @@ BEGIN
 END //
 
 
-
--- Procedure to retrieve all timeslots for a specific student during a specific week (given a start date) (Darya)
+-- Written by Darya Anbar, Started October 16, 2024
+-- Procedure to retrieve all timeslots for a specific student during a specific week (given a start date)
 -- Input: Student NetID, Start Date
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
 CREATE PROCEDURE student_timeslot_by_week(
@@ -240,8 +269,8 @@ BEGIN
     WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 7 DAY); 
 END //
 
-
--- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date) (Darya)
+-- Written by Darya Anbar, Started October 16, 2024
+-- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date) 
 -- Input: Student NetID, Start Date
 -- Output: For all timeslots: Student NetID, Student Name, Timeslot Date, Timeslot Description, Timeslot Duration
 CREATE PROCEDURE student_timeslot_by_month(
@@ -254,7 +283,8 @@ BEGIN
 END //
 
 
--- Procedure to retrieve the peer review criteria for a particular student and section (given the review type) (Darya)
+-- Written by Darya Anbar, Started October 23, 2024
+-- Procedure to retrieve the peer review criteria for a particular student and section (given the review type)
 -- Input: Student NetID, Review Type (Midterm or Final), Section Code
 -- Output: For all criteria: Criteria Name, Criteria Description
 CREATE PROCEDURE student_get_peer_review_criteria (
@@ -268,7 +298,8 @@ BEGIN
 END //
 
 
--- Procedure to retrieve the team members of a particular team in a specific section (Darya)
+-- Written by Darya Anbar, Started on October 23, 2024
+-- Procedure to retrieve the team members of a particular team in a specific section
 -- Input: Team Number, Section Code
 -- Output: For all team members: Student Name, Student NetID
 CREATE PROCEDURE student_get_team_members (
@@ -281,7 +312,8 @@ BEGIN
 END //
 
 
--- Procedure to insert a student score for another student (Emma)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to insert a student score for another student 
 -- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, @Variable to get the error message
 -- Output: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE student_insert_score (
@@ -305,6 +337,7 @@ inserting_score: BEGIN
 	
     SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name AND ReviewType = review_type);
     
+    -- Checks that the Review and Criteria exists, and that the score must be between 0 and 5 and not NULL
     IF (criteria_id IS NULL) THEN 
 		SET error_message = 'Criteria ID does not exist';
         LEAVE inserting_score;
@@ -325,7 +358,8 @@ inserting_score: BEGIN
 END //
 
 
--- Procedure to get the average score that a student received for each criteria (given the review type) (Emma and Darya)
+-- Written by Darya Anbar, Started October 23, 2024
+-- Procedure to get the average score that a student received for each criteria (given the review type)
 -- Input: Student NetID, Section Code, Review Type (Midterm or Final)
 -- Output: For each criteria: Criteria Name and Average Score
 CREATE PROCEDURE student_view_averages (
@@ -339,7 +373,9 @@ BEGIN
     GROUP BY CriteriaName;
 END //
 
--- Procedure to check whether the professor's attempted username and password are in the system (Emma)
+
+-- Written by Emma Hockett, Started October 13, 2024
+-- Procedure to check whether the professor's attempted username and password are in the system
 -- Input: Professor username, Professor password, @Variable to get the error message
 -- Output: Error Message: 'Success' or 'Incorrect username or password'
 CREATE PROCEDURE check_professor_login (
@@ -362,15 +398,14 @@ check_prof_login:BEGIN
     IF user_count < 1 THEN 
 		SET error_message = 'Incorrect username or password';
         LEAVE check_prof_login;
-	END IF;
-    
-	IF prof_input_password = (SELECT ProfUTDID FROM Professor WHERE ProfNetID = prof_input_username) THEN 
+	ELSEIF prof_input_password = (SELECT ProfUTDID FROM Professor WHERE ProfNetID = prof_input_username) THEN 
 		SET error_message = 'Change password';
 	END IF;
 END //
 
 
--- Procedure to change professor password (Emma)
+-- Written by Emma Hockett, Started October 13, 2024
+-- Procedure to change professor password
 -- Input: Student Net ID, Old Password, New Password, @Variable to hold get the error message
 -- Output: Error Message: 'Success" or the condition that was not met
 CREATE PROCEDURE change_professor_password (
@@ -391,6 +426,7 @@ prof_change_pass: BEGIN
     FROM Professor
     WHERE ProfNetID = prof_username AND ProfPassword = old_professor_password;
     
+    -- Checks Condiitons: User exists, the new password is not the same as the old one, the new password is not the UTDID
     IF user_count < 1 THEN 
 		SET error_message = 'Incorrect username or password';
         LEAVE prof_change_pass;
@@ -409,7 +445,8 @@ prof_change_pass: BEGIN
 END //
 
 
--- Procedure for the professor to create a new criteria, but only if they teach the class (Emma)
+-- Written by Emma Hockett, Started October 15, 2024
+-- Procedure for the professor to create a new criteria, but only if they teach the class
 -- Input: Professor NetID, Section Code, Criteria Name, Criteria Description,  Review Type, @Variable to get error status
 -- Output: Error Message: 'Success' or condition that was not met
 CREATE PROCEDURE professor_create_criteria (
@@ -424,7 +461,7 @@ create_criteria:BEGIN
     DECLARE criteria_name_count INT DEFAULT 0;
     SET error_message = 'Success';
     
-    
+    -- The criteria cannot have the same name as a different one for that review type
     IF NOT EXISTS (SELECT * FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code)THEN 
 		SET error_message = 'Can only create criteria for your class';
         LEAVE create_criteria;
@@ -438,8 +475,8 @@ create_criteria:BEGIN
 
 END //
 
-
--- Procedure to allow the professor to view a student's average scores received for a review type (Darya)
+-- Written by Darya Anbar, Started October 15, 2024
+-- Procedure to allow the professor to view a student's average scores received for a review type 
 -- Input: Professor NetID, Student NetID, Section Code, Review Type
 -- Output: For each criteria: Criteria Name and Average Score
 CREATE PROCEDURE professor_view_averages (
@@ -455,7 +492,8 @@ BEGIN
 END //
 
 
--- Procedure for the professor to view the individual scores given to a student (Emma)
+-- Written by Emma Hockett, Started October 15, 2024
+-- Procedure for the professor to view the individual scores given to a student 
 -- Inputs: Professor Net ID, Section Code, Student Net ID, Review Type
 -- Outputs: Reviewer net ID, Reviewer Name, Criteria Name, and Score
 CREATE PROCEDURE professor_view_individual_scores (
@@ -478,8 +516,8 @@ BEGIN
 END //
 
 
-
--- Procedure for creating/ populating the peer reviews for a class (Emma)
+-- Written by Emma Hockett, Started October 15, 2024
+-- Procedure for creating/ populating the peer reviews for a class 
 -- Inputs: Professor NetID, Section Code, and Review Type
 -- Outputs: Populates the Peer Review, Reviewed, and Scored Tables
 CREATE PROCEDURE create_peer_reviews (
@@ -499,7 +537,7 @@ creating_peer_reviews:BEGIN
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
     SET error_message = 'Success';
     
-    -- Checking certain criteria for before creating the peer reviews
+    -- Checking conditions before it allows the professor to create peer reviews
     IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
 		SET error_message = 'Can only create peer reviews for classes you teach';
         LEAVE creating_peer_reviews;
@@ -534,7 +572,7 @@ creating_peer_reviews:BEGIN
         LEAVE creating_peer_reviews;
 	END IF;
     
-    -- Iterating through every student in the section 
+    -- Iterating through every student in the section so that they all get their own to Reviews
     OPEN student_cursor;
     student_loop: LOOP
 		FETCH student_cursor INTO student_id;
@@ -543,6 +581,8 @@ creating_peer_reviews:BEGIN
 		END IF;
            
 		SET team_num = (SELECT TeamNum FROM MemberOf WHERE StuNetID = student_id AND SecCode = section_code);
+        
+        -- Calls this procedure to iterate through every member of this students team
 		CALL insert_peer_reviews(student_id, team_num, review_type, section_code, start_date, end_date);
         
 	END LOOP student_loop;
@@ -550,7 +590,8 @@ creating_peer_reviews:BEGIN
 
 END //
 
--- Subset Procedure of the create_peer_reviews Procedure (Emma)
+-- Written by Emma Hockett, Started October 15, 2024
+-- Subset Procedure of the create_peer_reviews Procedure 
 CREATE PROCEDURE insert_peer_reviews (
 	IN student_id char(9),
     IN team_num INT,
@@ -569,7 +610,7 @@ inserting_peer_and_scored: BEGIN
         WHERE SecCode = section_code AND TeamNum = team_num;
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done_member = 1;
 	
-	-- Based on the student selected in the previous section, iterates through everyone in the same group as them
+	-- Based on the student selected in the previous section, iterates through everyone in the same group
 	SET done_member = 0;
 	OPEN member_cursor;
 	member_loop: LOOP
@@ -579,22 +620,24 @@ inserting_peer_and_scored: BEGIN
 			LEAVE member_loop;
 		END IF;
         
-        -- Inserts the peer reviews 
+        -- Inserts the peer reviews where the student is the the one being reviewed 
         INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID, StartDate, EndDate)
         VALUES (section_code, review_type, other_student, start_date, end_date);
         
 		SET last_reviewID = LAST_INSERT_ID();
         
-        -- Inserts into the Reviewed Table 
+        -- Inserts the peer reviews into the Reviewed Table so the student is being reviewed 
         INSERT INTO Reviewed (StuNetID, ReviewID, SecCode)
         VALUES (student_id, last_reviewID, section_code);
         
+        -- Calls this to iterate through each criteria for this review type to populate the Scored Table
         CALL insert_scored_table(last_reviewID, review_type, section_code);
         
 	END LOOP member_loop;
     CLOSE member_cursor;
 END// 
 
+-- Written by Emma Hockett, Started October 15, 2024
 -- Sub Procedure of the create_peer_reviews Procedure (Emma)
 CREATE PROCEDURE insert_scored_table (
 	IN review_id INT,
@@ -611,7 +654,7 @@ BEGIN
 	
 	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done_criteria = 1;
 
-	-- Iterates through every criteria to add to the scored table, initialized everything to 0
+	-- Iterates through every criteria for each Peer Review, sets all scores to NULL initially
 	SET done_criteria = 0;
 	OPEN criteria_cursor;
 	criteria_loop: LOOP
@@ -629,7 +672,8 @@ BEGIN
 END//
 
 
--- Procedure to edit the scores that a student gave to a different student (Darya)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to edit the scores that a student gave to a different student
 -- Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, Reiew Type, @Variable for error message
 -- Outputs: Error Message: 'Success' or condition that was not met
 CREATE PROCEDURE edit_scores_given (
@@ -646,6 +690,7 @@ edit_score: BEGIN
     DECLARE review_id INT;
     SET error_message = 'Success';
     
+    -- Only allows the professor to alter the scores and must be within the constraints
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
 		SET error_message = 'Can only edit scores for your classes';
         LEAVE edit_score;
@@ -669,7 +714,8 @@ edit_score: BEGIN
 END //
 
 
--- Procedure to insert the correct number of teams for a section (Emma)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to insert the correct number of teams for a section
 -- Inputs: Professor NetID, Section Code, Number of Teams for section, @Variable for error message
 -- Outputs: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE professor_insert_num_teams (
@@ -688,6 +734,7 @@ insert_teams: BEGIN
         LEAVE insert_teams;
 	END IF;
         
+	-- For the number of teams, insert into the Teams Table
 	insertion_loop: LOOP
 		IF num_teams > 0 THEN 
 			INSERT INTO Team (SecCode)
@@ -700,7 +747,8 @@ insert_teams: BEGIN
 END //
 
 
--- Procedure to Delete a team from the database, will remove all of the students from the team first (Emma)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to Delete a team from the database, will remove all of the students from the team first
 -- Inputs: Professor NetID, Section Code, Team Num, @Variable for error message
 -- Outputs: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE professor_delete_team (
@@ -719,6 +767,7 @@ team_deletion:BEGIN
         LEAVE team_deletion;
 	END IF;
     
+    -- Deletes insatnces from the MemberOf table with this team number and section before deleting the team
     DELETE FROM MemberOf
     WHERE TeamNum = team_num AND SecCode = section_code;
     
@@ -726,8 +775,8 @@ team_deletion:BEGIN
     WHERE TeamNum = team_num AND SecCode = section_code;
 END //
 
-
--- Procedure to get the CriteriaID and info for a section before it it edited (Darya)
+-- Written by Darya Anbar, Started October 16, 2024
+-- Procedure to get the CriteriaID and info for a section before it it edited 
 -- Input: Professor NetID, Section Code, Review Type, @Variable for error message
 -- Output: CriteriaId, Criteria Name, Criteria Description
 CREATE PROCEDURE get_section_criteriaid(
@@ -752,7 +801,8 @@ get_criteriaid: BEGIN
 END //
 
 
--- Procedure to edit the criteria (Darya)
+-- Written by Emma Hockett, October 17, 2024
+-- Procedure to edit the criteria 
 -- Input: Professor NetID, Section Code, CriteriaID, Updated Criteria Name, updated Criteria Description, Review Type, @Variable for error message
 -- Output: Error Message: 'Success' or condition that was not met
 CREATE PROCEDURE professor_edit_criteria (
@@ -780,7 +830,8 @@ edit_criteria: BEGIN
 
 END //
 
--- Procedure to allow a professor to delete a criteria  (Emma)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to allow a professor to delete a criteria 
 -- Inputs: Professor NetID, Section Code, Criteria Name, Rview Type, @Variable for error message
 -- Outputs: Error Message: 'Success" or condition not met
 -- Disclaimer: Cannot delete a criteria that has been used to create the Peer Reviews and Scored Table
@@ -807,7 +858,8 @@ criteria_deletion:BEGIN
 END //
 
 
--- Procedure to allow the professor to change a student's team number (Emma)
+-- Written by Emma Hockett, Started October 17, 2024
+-- Procedure to allow the professor to change a student's team number 
 -- Input: Professor NetID, Section Code, Student NetID, New Team Number, @Variable for error message
 -- Output: Error Message: 'Success' or condition not met
 CREATE PROCEDURE professor_change_student_team(
@@ -820,6 +872,7 @@ change_team:BEGIN
 	DECLARE old_team INT;
     SET error_message = 'Success';
     
+    -- Checks whether the student is eligible to be moved to a new team
 	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
 		SET error_message = 'Can only alter teams in your section';
         LEAVE change_team;
@@ -837,6 +890,7 @@ change_team:BEGIN
 
 END //
 
+-- Written by Emma Hockett, Started October 23, 2024
 -- Procedure to allow the professor to reuse the criteria from a previous review for a new review (Darya)
 -- Input: Professor NetID, Section Code, Old Criteria Type, New Criteria Type, @Variable for error message
 -- Output: Message: 'Success' or condition that was not met
@@ -868,6 +922,7 @@ keep_criteria_same: BEGIN
         LEAVE keep_criteria_same;
 	END IF;
     
+    -- For each of the criteria that was in the old review type, insert it into the table with the new review type 
     OPEN criteria_cursor;
     criteria_loop: LOOP
 		FETCH criteria_cursor INTO criteria_id;
@@ -886,9 +941,10 @@ keep_criteria_same: BEGIN
 END //
 
 
+-- Written by Darya Anbar, Started October 23, 2024
 -- Procedure to retrieve all sections that a professor teaches
 -- Input: Professor NetID
--- Output: For all sections: Section Code and Section Name (Darya)
+-- Output: For all sections: Section Code and Section Name
 CREATE PROCEDURE professor_get_sections (
     IN prof_netID char(9))
 BEGIN
@@ -900,7 +956,8 @@ BEGIN
 END //
 
 
--- Procedure to get all students in a given section (Darya)
+-- Written by Darya Anbar, Started October 24, 2024
+-- Procedure to get all students in a given section
 -- Input: Section Code
 -- Output: Student NetIDs
 CREATE PROCEDURE get_section_students (
@@ -912,7 +969,8 @@ BEGIN
 END //
 
 
--- Procedure to get the number of students in a students team (Emma)
+-- Written by Emma Hockett, Started October 25, 2024
+-- Procedure to get the number of students in a students team
 -- Inputs: Student NetID, Section Code, @Variable for num in team, @Variable for error message
 -- Outputs: Message: Success or condition not met, Number in Team: 0 if not found, or the number in the team
 CREATE PROCEDURE number_students_in_team (
@@ -960,7 +1018,8 @@ pr_availability:BEGIN
 END //
 
 
--- Procedure to add students to a class (Emma)
+-- Written by Emma Hockett, Started October 25, 2024
+-- Procedure to add students to a class
 -- Inputs: Student NetID, Student UTDID, Student Name, Section code, @Variable to hold message
 -- Outputs: Message: 'Success' or condition not met
 CREATE PROCEDURE professor_add_students (
@@ -972,6 +1031,7 @@ CREATE PROCEDURE professor_add_students (
 add_student: BEGIN
 	SET error_message = 'Success';
     
+    -- Checks that the student values being added are in the correct format for the database.
     IF student_netID NOT REGEXP '^[a-zA-Z]{3}[0-9]{6}$' THEN 
 		SET error_message = 'Student NetID not in correct format';
         LEAVE add_student;
@@ -991,8 +1051,8 @@ add_student: BEGIN
 
 END //
 
-
--- Procedure to add a student to a team (Emma)
+-- Written by Emma Hockett, Started October 25, 2024
+-- Procedure to add a student to a team
 -- Inputs: Team Number, Student NetID, Section Code, @Variable for the error message
 -- Outputs: Message: 'Success' or condition not met
 CREATE PROCEDURE add_student_to_team (
@@ -1003,6 +1063,7 @@ CREATE PROCEDURE add_student_to_team (
 add_to_team:BEGIN 
 	SET error_message = 'Success';
     
+    -- Checks whether the student is eligible to be added to the team
     IF NOT EXISTS ( SELECT * FROM Team WHERE TeamNum = team_num AND SecCode = section_code) THEN 
 		SET error_message = 'Team number does not exist for this section';
         LEAVE add_to_team;
@@ -1020,7 +1081,8 @@ add_to_team:BEGIN
 END //
 
 
--- Procedure for a professor to add their section (Emma)
+-- Written by Emma Hockett, Started October 25, 2024
+-- Procedure for a professor to add their section 
 -- Input: Professor NetID, Section Code, Section Name, @Variable to hold message
 -- Output: Message: 'Success' or condition not met
 CREATE PROCEDURE professor_add_section (
@@ -1033,6 +1095,8 @@ CREATE PROCEDURE professor_add_section (
 add_section: BEGIN 
 	SET error_message = 'Success';
     
+    
+    -- Checks whether the values trying to be added are consistent with what is expected
     IF EXISTS (SELECT * FROM Section WHERE SecCode = section_code) THEN 
 		SET error_message = 'Section Code already in use';
         LEAVE add_section;
@@ -1067,7 +1131,8 @@ BEGIN
 END //
 
 
--- Procedure to check what needs to be shown on the student peer review page (Emma and Darya)
+-- Written by Emma Hockett and Darya Anbar, Started October 29, 2024
+-- Procedure to check what needs to be shown on the student peer review page 
 -- Intputs: Student NetID, Section Code
 -- Outputs: 
 -- The student has not completed the peer review:  'Peer Review needs to be completed'
@@ -1085,12 +1150,14 @@ pr_page: BEGIN
 
     SET error_message = '';
 
+	-- Checks whether the student has completed the current peer review 
     IF EXISTS (SELECT 1 FROM PeerReview pr JOIN Scored s ON pr.ReviewID = s.ReviewID AND pr.SecCode = s.SecCode
         WHERE pr.ReviewerID = student_netID AND s.Score IS NULL AND pr.SecCode = section_code AND CURDATE() BETWEEN pr.StartDate AND pr.EndDate) THEN
         
         SET pr_done = TRUE;
     END IF;
 
+	-- Checks wether the student has completed the peer review, but has to wait until the end of the review window to see scores
     IF NOT pr_done AND EXISTS (SELECT 1 FROM PeerReview pr WHERE pr.ReviewerID = student_netID 
 		AND pr.SecCode = section_code AND CURDATE() BETWEEN pr.StartDate AND pr.EndDate 
 		AND NOT EXISTS (SELECT 1 FROM Scored s WHERE s.ReviewID = pr.ReviewID AND s.SecCode = pr.SecCode AND s.Score IS NULL)) THEN
@@ -1098,6 +1165,7 @@ pr_page: BEGIN
         SET in_waiting = TRUE;
     END IF;
 
+	-- Checks whether it is between peer review windows, so the student can see their average scores for the previous peer review
     IF NOT pr_done AND NOT in_waiting AND EXISTS (SELECT 1 FROM PeerReview pr_latest WHERE pr_latest.SecCode = section_code
           AND pr_latest.EndDate = (SELECT MAX(EndDate) FROM PeerReview WHERE SecCode = section_code AND EndDate <= CURDATE())
           AND NOT EXISTS (SELECT 1 FROM PeerReview pr_next WHERE pr_next.SecCode = section_code AND pr_next.StartDate > CURDATE() AND pr_next.StartDate = (
@@ -1123,7 +1191,8 @@ pr_page: BEGIN
 END //
 
 
--- Procedure to return the students who didn't complete the peer review in time (Darya)
+-- Written by Darya Anbar, Started October 30, 2024
+-- Procedure to return the students who didn't complete the peer review in time
 -- Inputs: Section Code, Review Type
 -- Outputs: Student NetIDs of students who didn't/haven't completed the review
 CREATE PROCEDURE professor_get_incomplete_reviews (
@@ -1137,7 +1206,8 @@ BEGIN
 END //
 
 
--- Procedure for a professor to edit a student's timeslot (Darya)
+-- Written by Darya Anbar, Started October 30, 2024
+-- Procedure for a professor to edit a student's timeslot 
 -- Inputs: Student NetID, Timeslot Date ('YYYY-MM-DD'), Updated Description, Updated Duration, and a variable to hold the error message
 -- Outputs: Error Message: 'Success' or a description of which condition it violated
 CREATE PROCEDURE professor_edit_timeslot (
@@ -1149,7 +1219,7 @@ CREATE PROCEDURE professor_edit_timeslot (
 edit_timeslot:BEGIN
     SET error_message = 'Success';
     
-    -- Checking constraints: description longer than 30 character, duration in correct format
+    -- Checking constraints: Description and Duration constraints must be consistent with what is expected
    IF (LENGTH(updated_description) < 30) THEN
         SET error_message = 'Description must be at least 30 characters';
         LEAVE edit_timeslot;
@@ -1170,7 +1240,8 @@ edit_timeslot:BEGIN
 
 END //
 
--- Procedure to return the emails of all of the student who have not inputted any time for the week (Emma)
+-- Written by Emma Hockett, Started November 3, 2024
+-- Procedure to return the emails of all of the student who have not inputted any time for the week
 -- Inputs: Section Code, Date of the start of the week, @Variable for error message
 -- Outputs: Emails for all of the students who have not put timeslots in for the current week
 CREATE PROCEDURE timetrack_student_emails (
@@ -1185,6 +1256,7 @@ tt_emails:BEGIN
 	END IF;
     
     
+    -- Creates the emails of the students who have not entered any time from the given date to the current date
 	SELECT CONCAT(s.StuNetID, '@utdallas.edu') AS Email
     FROM Student s
     JOIN Attends a ON s.StuNetID = a.StuNetID
@@ -1196,7 +1268,9 @@ tt_emails:BEGIN
           
 END //
 
--- Procedure to return all of the emails of the students who have not completed the current peer reviews (Emma)
+
+-- Written by Emma Hockett, Started November 3, 2024
+-- Procedure to return all of the emails of the students who have not completed the current peer reviews
 -- Inputs: Section Code
 -- Outputs: Emails of those who have not completed them 
 CREATE PROCEDURE peerReview_student_emails (
@@ -1212,6 +1286,7 @@ pr_emails: BEGIN
     
     SELECT ReviewType INTO review_type FROM PeerReview WHERE SecCode = section_code AND CURDATE() BETWEEN StartDate AND EndDate LIMIT 1;
     
+    -- Creates the emails of the students who have not completed the current peer review
 	SELECT DISTINCT CONCAT(Pr.ReviewerID, '@utdallas.edu') AS Email
     FROM PeerReview Pr
     JOIN Scored Sc ON Sc.ReviewID = Pr.ReviewID
