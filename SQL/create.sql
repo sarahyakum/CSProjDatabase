@@ -1,8 +1,19 @@
+/*
+	Written by Emma Hockett and Darya Anbar for CS 4485.0W1, Senior Design Project, Started October 14, 2024.
+         NetID: ech210001 and dxa200020
+         
+	Statements to create the database, and then all of the tables and triggers associated with it. This file must be run first in order to work.
+    Includes the tables: Student, Professor, Section, Teaches, Attends, Team, MemberOf, Timeslot, Peer Review, Reviewed, Criteria, Scored
+    Triggers: before_insert_timeslot, before_insert_team, before_criteria_team
+
+*/
+
 DROP DATABASE IF EXISTS seniordesignproject;  
 CREATE DATABASE seniordesignproject;  
 USE seniordesignproject;  
 
--- Creating the Student Table
+
+-- Student Table: Represents the students and their attrbutes
 CREATE TABLE Student (  
 StuNetID char(9) NOT NULL,   
 StuUTDID char(10) UNIQUE NOT NULL,   
@@ -11,7 +22,7 @@ StuPassword varchar(20) NOT NULL,
 PRIMARY KEY (StuNetID)  
 );  
 
--- Creating the Professor Table
+-- Professor Table: Represents the professor and their attributes
 CREATE TABLE Professor (   
 ProfNetID char(9) NOT NULL,  
 ProfUTDID char(10) UNIQUE NOT NULL,  
@@ -20,7 +31,7 @@ ProfPassword varchar(20) NOT NULL,
 PRIMARY KEY (ProfNetID)  
 );  
 
--- Creating the Section (class) Table
+-- Section Table: Represents the sections and their attibutes
 CREATE TABLE Section (  
 SecCode char(5) NOT NULL,  
 SecName varchar(12) UNIQUE NOT NULL,
@@ -29,7 +40,7 @@ EndDate DATE NOT NULL,
 PRIMARY KEY (SecCode)  
 ); 
 
--- Creating the Teaches Table: Relationship between professor and section
+-- Teaches Table: Represents the connection between professors and section
 CREATE TABLE Teaches (  
 ProfNetID char(9) NOT NULL,  
 SecCode char(5) NOT NULL,   
@@ -38,7 +49,7 @@ FOREIGN KEY (ProfNetID) REFERENCES Professor(ProfNetID),
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode) 
 );  
 
--- Creating the Attends Table: Relationship between student and section
+-- Attends Table: Represents the connection between students and sections
 CREATE TABLE Attends (  
 StuNetID char(9) NOT NULL,  
 SecCode char(5) NOT NULL,  
@@ -47,7 +58,7 @@ FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  
 );  
 
--- Creating the Team Table: Weak entity of section
+-- Team Table: Represents the teams for the various sections, Weak Entity of the Section Table
 CREATE TABLE Team (  
 TeamNum int NOT NULL,  
 SecCode char(5) NOT NULL,  
@@ -55,7 +66,7 @@ PRIMARY KEY (TeamNum, SecCode),
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  
 );  
 
--- Creating the MemberOf Table: Relationship between team and student
+-- MemberOf Table: Represents the connection between teams and student, Dependent on Section Table
 CREATE TABLE MemberOf (  
 TeamNum int NOT NULL,  
 SecCode char(5) NOT NULL, 
@@ -65,7 +76,7 @@ FOREIGN KEY (TeamNum, SecCode) REFERENCES Team(TeamNum, SecCode),
 FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) 
 );  
 
--- Creating the Timeslot Table: Weak entity of Student
+-- Timeslot Table: Represents the timeslots for the student and its attributes, Weak Entity of the Student Table
 CREATE TABLE Timeslot (   
 TimeslotID int NOT NULL,  
 StuNetID char(9) NOT NULL,
@@ -76,12 +87,12 @@ PRIMARY KEY (TimeSlotID, StuNetID),
 FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID)  
 );  
 
--- Creating the Peer Review Table
+-- PeerReview Table: Represents the broad peer review entity, Weak Entity of Section
 CREATE TABLE PeerReview (   
 ReviewID int NOT NULL AUTO_INCREMENT, 
 SecCode char(5) NOT NULL,  
 ReviewType char(7) NOT NULL,  
-ReviewerID char(9) NOT NULL,  
+ReviewerID char(9) NOT NULL,  	-- Net ID of student who is doing the reviewing 
 StartDate DATE NOT NULL,
 EndDate DATE NOT NULL, 
 PRIMARY KEY (ReviewID, SecCode),   
@@ -89,7 +100,7 @@ FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID),
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)
 );  
 
--- Creating the Reviewed Table: Relationship between Peer Review and student who is being reviewed 
+-- Reviewed Table: Represents the student who is being reviewed for a Peer Review, Connection between Student and Peer Review Tables
 CREATE TABLE Reviewed (   
 StuNetID char(9) NOT NULL,  
 ReviewID int NOT NULL,  
@@ -99,7 +110,7 @@ FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),
 FOREIGN KEY (ReviewID, SecCode) REFERENCES PeerReview(ReviewID, SecCode)  
 );  
 
--- Creating the Criteria Table: Weak entity of section
+-- Criteria Table: Represents the criteria that will be used for a Peer Review, Weak Entity of Section 
 CREATE TABLE Criteria (   
 CriteriaID int NOT NULL AUTO_INCREMENT,  
 SecCode char(5) NOT NULL,
@@ -110,7 +121,7 @@ PRIMARY KEY (CriteriaID, SecCode),
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)   
 );  
 
--- Creating the Scored Table: Relationship between peer review and criteria
+-- Scored Table: Represents the scores that entered for a given peer review, for a given criteria, Connects Section, PeerReview, and Criteria
 CREATE TABLE Scored (  
 ReviewID int NOT NULL,   
 CriteriaID int NOT NULL,   
@@ -121,7 +132,7 @@ FOREIGN KEY (ReviewID, SecCode) REFERENCES PeerReview(ReviewID, SecCode),
 FOREIGN KEY (CriteriaID, SecCode) REFERENCES Criteria(CriteriaID, SecCode)  
 ); 
 
--- Creating a trigger to auto-increment the TimeslotID on a per student basis
+-- Trigger for considering the next TimeslotId that should be inserted, dependent on each student 
 DELIMITER //
 CREATE TRIGGER before_insert_timeslot
 BEFORE INSERT ON Timeslot
@@ -138,7 +149,7 @@ BEGIN
 END; //
 DELIMITER ;
 
--- Creating a trigger to auto-increment the Team number on a per section basis
+-- Trigger for determing the next Team Number to be used, dependent on the section
 DELIMITER //
 CREATE TRIGGER before_insert_team
 BEFORE INSERT ON Team
@@ -156,7 +167,7 @@ BEGIN
 END; //
 DELIMITER ;
 
--- Creating a trigger so that the criteria auto-incremented based on the section
+-- Trigger for the next Criteria ID number to assign, dependent on the section
 DELIMITER //
 CREATE TRIGGER before_criteria_team
 BEFORE INSERT ON Criteria
