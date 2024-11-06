@@ -8,16 +8,17 @@
 
   - **student_team_and_section** : Creates view for the team number and section code of all students in the system
 
-  - **student_scores_received** : Creates view for all scores that all students received in all sections (for all criteria)
-
-## General
-
 
 ## Professor 
 
-  - **professor_student_scores** : Creates view for all scores that all students received in all sections of all professors in the system
+  - **professor_sections** : Creates view for all sections taught by all professors
 
-  - **professor_student_timeslots** : Creates view for all students' timeslots in all professors' sections
+  - **professor_students** : Creates view for all students in all teams of all sections taught by all professors
+
+  - **professor_peer_review_criteria** : Creates view for all criteria categories for all sections taught by all professors
+
+  - **professor_student_scores** : Creates view for all scores that all students received in all sections taught by all professors
+
 
 
 # Description of the Procedures:
@@ -72,6 +73,7 @@
   - **get_section_timeframe** : Allows the student side to grab the timeframe for the semester
       - *Inputs:* Section Code
       - *Outputs:* Start Date, End Date
+
   - **student_peer_review_page** : Checks what the peer review page should show for the student
       - *Inputs:* Student NetID, Section Code, @Variable for the message
       - *Outputs:* 'Peer Review needs to be completed', 'Peer Reviews completed, waiting until the end of the review session to view average scores''Average scores for the last review type: (review type)'
