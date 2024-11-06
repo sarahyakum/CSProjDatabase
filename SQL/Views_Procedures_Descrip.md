@@ -11,12 +11,6 @@
 
 ## Professor 
 
-  - **professor_sections** : Creates view for all sections taught by all professors
-
-  - **professor_students** : Creates view for all students in all teams of all sections taught by all professors
-
-  - **professor_peer_review_criteria** : Creates view for all criteria categories for all sections taught by all professors
-
   - **professor_student_scores** : Creates view for all scores that all students received in all sections taught by all professors
 
 
