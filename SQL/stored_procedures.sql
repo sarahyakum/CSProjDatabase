@@ -6,7 +6,7 @@
     Must be run after the create.sql file and create_views.sql
     
     Student Procedures: 
-		General: check_student_login, change_student_passwordm student_get_team_members, number_student_in_team, get_section_timeframe
+		General: check_student_login, change_student_password, student_get_team_members, number_student_in_team, get_section_timeframe
         Time Tracking: student_insert_timeslot, student_edit_timeslot, student_edit_timeslot
         Peer Review: student_insert_score, student_get_peer_review_criteria, student_view_averages, student_peer_review_page
         
@@ -269,6 +269,7 @@ BEGIN
     WHERE StuNetID = stu_netID AND TSDate >= start_date AND TSDate < DATE_ADD(start_date, INTERVAL 7 DAY); 
 END //
 
+
 -- Written by Darya Anbar, Started October 16, 2024
 -- Procedure to retrieve all timeslots for a specific student during a specific month (given a start date) 
 -- Input: Student NetID, Start Date
@@ -475,6 +476,7 @@ create_criteria:BEGIN
 
 END //
 
+
 -- Written by Darya Anbar, Started October 15, 2024
 -- Procedure to allow the professor to view a student's average scores received for a review type 
 -- Input: Professor NetID, Student NetID, Section Code, Review Type
@@ -590,6 +592,7 @@ creating_peer_reviews:BEGIN
 
 END //
 
+
 -- Written by Emma Hockett, Started October 15, 2024
 -- Subset Procedure of the create_peer_reviews Procedure 
 CREATE PROCEDURE insert_peer_reviews (
@@ -636,6 +639,7 @@ inserting_peer_and_scored: BEGIN
 	END LOOP member_loop;
     CLOSE member_cursor;
 END// 
+
 
 -- Written by Emma Hockett, Started October 15, 2024
 -- Sub Procedure of the create_peer_reviews Procedure (Emma)
@@ -775,8 +779,9 @@ team_deletion:BEGIN
     WHERE TeamNum = team_num AND SecCode = section_code;
 END //
 
+
 -- Written by Darya Anbar, Started October 16, 2024
--- Procedure to get the CriteriaID and info for a section before it it edited 
+-- Procedure to get the CriteriaID and info for a section before it is edited 
 -- Input: Professor NetID, Section Code, Review Type, @Variable for error message
 -- Output: CriteriaId, Criteria Name, Criteria Description
 CREATE PROCEDURE get_section_criteriaid(
@@ -829,6 +834,7 @@ edit_criteria: BEGIN
     WHERE CriteriaID = criteria_id;
 
 END //
+
 
 -- Written by Emma Hockett, Started October 17, 2024
 -- Procedure to allow a professor to delete a criteria 
@@ -889,6 +895,7 @@ change_team:BEGIN
     WHERE SecCode = section_code AND StuNetID = student_netID;
 
 END //
+
 
 -- Written by Emma Hockett, Started October 23, 2024
 -- Procedure to allow the professor to reuse the criteria from a previous review for a new review (Darya)
@@ -995,6 +1002,8 @@ num_in_team:BEGIN
 
 END // 
 
+
+-- Written by Emma Hockett, Started October 25, 2024
 -- Procedure to check whether there is a peer review for the section that is currently available (Emma)
 -- Inputs: Section Code, @Variable for the message
 -- Outputs: Message: 'Peer Review Available' or reason why not available
@@ -1050,6 +1059,7 @@ add_student: BEGIN
     VALUES (student_netID, section_code);
 
 END //
+
 
 -- Written by Emma Hockett, Started October 25, 2024
 -- Procedure to add a student to a team
@@ -1120,7 +1130,8 @@ add_section: BEGIN
 END // 
 
 
--- Procedure to check get the start and end dates for the section (Darya)
+-- Written by Darya Anbar, Started October 29, 2024
+-- Procedure to check get the start and end dates for the section
 -- Inputs: Section Code
 -- Outputs: Start Date, End Date 
 CREATE PROCEDURE get_section_timeframe (
@@ -1239,6 +1250,7 @@ edit_timeslot:BEGIN
     WHERE StuNetID = student_netID AND TSDate = ts_date;
 
 END //
+
 
 -- Written by Emma Hockett, Started November 3, 2024
 -- Procedure to return the emails of all of the student who have not inputted any time for the week
