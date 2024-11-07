@@ -3,7 +3,7 @@
 ## In the Model Page...
 
 ### Step1: Defining the Page Model Class
-```
+```c
 public class WeeklyViewModel : PageModel
 {
     public List<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
