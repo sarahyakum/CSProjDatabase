@@ -12,7 +12,7 @@ public class WeeklyViewModel : PageModel
 -   **WeeklyViewModel**: This is a `PageModel` class that acts as the code-behind for a Razor Page. It holds logic for data retrieval and defines properties to be used in the Razor Page.
 
 ### Step2: Handling GET Requests
-```
+```c
 public void OnGet()
 {
     LoadCurrentWeekTimeSlots();
@@ -24,7 +24,7 @@ public void OnGet()
 ### Step 3: Acc DB Access
 
 **a) First set the connection string where you need to access the DB**
-```
+```c
 private void LoadCurrentWeekTimeSlots()
 {
     string connectionString = "server=127.0.0.1;user=root;password=Kiav@z1208;database=seniordesignproject;";
@@ -33,7 +33,7 @@ private void LoadCurrentWeekTimeSlots()
 -   **connectionString**: Defines the details for connecting to the MySQL database. You should replace it with secure credentials as needed.
 
 **b) Then get the stuNetID from the Session (so we get the right students data**
-```
+```c
     string stuNetID = HttpContext.Session.GetString("StudentNetId");
 
     if (string.IsNullOrEmpty(stuNetID))
@@ -45,7 +45,7 @@ private void LoadCurrentWeekTimeSlots()
 ```
 
 **c) Connecting to the Database:**
-``` 
+``` c
     using (var connection = new MySqlConnection(connectionString))
     {
         connection.Open();
@@ -55,7 +55,7 @@ private void LoadCurrentWeekTimeSlots()
 
 **d)  Setting Up the MySQL Command and Parameters**
 
-```
+```c
         using (var cmd = new MySqlCommand("student_timeslot_by_week", connection))
         {
             cmd.CommandType = CommandType.StoredProcedure;
@@ -70,7 +70,7 @@ private void LoadCurrentWeekTimeSlots()
     -   `@start_date`: The start date for the week.
 
 **e) Executing the Command and Reading Data**
-```
+```c
             using (var reader = cmd.ExecuteReader())
             {
                 Console.WriteLine("Executing stored procedure: student_timeslot_by_week for current week with stuNetID: " + stuNetID);
@@ -90,7 +90,7 @@ private void LoadCurrentWeekTimeSlots()
 ## In the CSHTML Page (View)
 
 ### Step 1: Declaring the Page Model
-```
+```html
 @page
 @model WeeklyViewModel
 
