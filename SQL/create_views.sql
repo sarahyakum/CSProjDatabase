@@ -19,7 +19,7 @@ JOIN Timeslot T ON T.StuNetID = S.StuNetID;
 -- View for all criteria categories for all students in the system
 -- Used in these procedures: student_get_peer_review_criteria
 CREATE VIEW student_peer_review_criteria AS
-SELECT S.StuNetID, C.CriteriaName, C.CriteriaDescription, Sc.SecCode
+SELECT S.StuNetID, C.CriteriaName, C.CriteriaDescription, Sc.SecCode, C.ReviewType
 FROM Student S
 JOIN MemberOf M ON M.StuNetID = S.StuNetID
 JOIN Section Sc ON Sc.SecCode = M.SecCode
