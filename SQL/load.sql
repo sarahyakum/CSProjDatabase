@@ -75,10 +75,10 @@ INSERT INTO Attends (StuNetID, SecCode) VALUES
 ('kdh190888', 83568),('wvf180876', 83568);
 
 -- Inserting the data into the Team Table (How many inserts per section = number of teams)
-INSERT INTO Team (SecCode) VALUES 
-(84745),(84745),(84745),
-(83909),(83909),
-(83568),(83568);
+INSERT INTO Team (TeamNum, SecCode) VALUES 
+(1, 84745),(2, 84745),(3, 84745),
+(1, 83909),(2, 83909),
+(1, 83568),(2, 83568);
 
 -- Inserting the data into the MemberOf Table
 INSERT INTO MemberOf (TeamNum, SecCode, StuNetID) VALUES 
@@ -171,9 +171,13 @@ INSERT INTO Timeslot (StuNetID, TSDate, TSDescription, TSDuration) VALUES
 
 -- Inserting the data into the Criteria Table
 INSERT INTO Criteria (SecCode, CriteriaName, CriteriaDescription, ReviewType) VALUES
-(84745, 'Contributing to Team''s Work', 'How well does the person contributions improve the team''s work? Do they help their teammates who are having a difficult time completing their work?', 'Midterm'),
+(84745, 'Contributing to Team''s Work', 'How well does the person''s contributions improve the team''s work? Do they help their teammates who are having a difficult time completing their work?', 'Midterm'),
 (84745, 'Interacting with Teammates', 'Do they show an interest in their teammates'' ideas? Do they provide encouragement? Do they ask for feedback and use suggestions?', 'Midterm'),
-(84745, 'Keeping Team on Track', 'Do they watch the conditions affecting the team and monitor the progress? Do they make sure the team is making appropriate progress? Do they give feedback on a timely manner?', 'Midterm');
+(84745, 'Keeping Team on Track', 'Do they watch the conditions affecting the team and monitor the progress? Do they make sure the team is making appropriate progress? Do they give feedback in a timely manner?', 'Midterm'),
+(84745, 'Contributing to Team''s Work', 'How well does the person''s contributions improve the team''s work? Do they help their teammates who are having a difficult time completing their work?', 'Final'),
+(84745, 'Interacting with Teammates', 'Do they show an interest in their teammates'' ideas? Do they provide encouragement? Do they ask for feedback and use suggestions?', 'Final'),
+(84745, 'Keeping Team on Track', 'Do they watch the conditions affecting the team and monitor the progress? Do they make sure the team is making appropriate progress? Do they give feedback in a timely manner?', 'Final'),
+(84745, 'Communicating Effectively', 'Do they clearly articulate their ideas and actively listen to others? Do they adapt their communication style to suit the needs of the team?', 'Midterm');
 
 
 INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID, StartDate, EndDate) VALUES
@@ -181,7 +185,12 @@ INSERT INTO PeerReview (SecCode, ReviewType, ReviewerID, StartDate, EndDate) VAL
 (84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'dxa190111','2024-10-28', '2024-10-28'),
 (84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'sib170121','2024-10-20', '2024-10-28'),
 (84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'nxb200088','2024-10-20', '2024-10-28'),
-(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-8'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28');
+(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-8'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),(84745, 'Midterm', 'cab160444','2024-10-20', '2024-10-28'),
+(84745, 'Final', 'axa190000', '2024-12-01', '2024-12-09'),(84745, 'Final', 'axa190000', '2024-12-01', '2024-12-09'),(84745, 'Final', 'axa190000', '2024-12-01', '2024-12-09'),(84745, 'Final', 'axa190000', '2024-12-01', '2024-12-09'),(84745, 'Final', 'axa190000', '2024-12-01', '2024-12-09'),
+(84745, 'Final', 'dxa190111','2024-12-01', '2024-12-09'),(84745, 'Final', 'dxa190111','2024-12-01', '2024-12-09'),(84745, 'Final', 'dxa190111','2024-12-01', '2024-12-09'),(84745, 'Final', 'dxa190111','2024-12-01', '2024-12-09'),(84745, 'Final', 'dxa190111','2024-12-01', '2024-12-09'),
+(84745, 'Final', 'sib170121','2024-12-01', '2024-12-09'),(84745, 'Final', 'sib170121','2024-12-01', '2024-12-09'),(84745, 'Final', 'sib170121','2024-12-01', '2024-12-09'),(84745, 'Final', 'sib170121','2024-12-01', '2024-12-09'),(84745, 'Final', 'sib170121','2024-12-01', '2024-12-09'),
+(84745, 'Final', 'nxb200088','2024-12-01', '2024-12-09'),(84745, 'Final', 'nxb200088','2024-12-01', '2024-12-09'),(84745, 'Final', 'nxb200088','2024-12-01', '2024-12-09'),(84745, 'Final', 'nxb200088','2024-12-01', '2024-12-09'),(84745, 'Final', 'nxb200088','2024-12-01', '2024-12-09'),
+(84745, 'Final', 'cab160444','2024-12-01', '2024-12-09'),(84745, 'Final', 'cab160444','2024-12-01', '2024-12-09'),(84745, 'Final', 'cab160444','2024-12-01', '2024-12-09'),(84745, 'Final', 'cab160444','2024-12-01', '2024-12-09'),(84745, 'Final', 'cab160444','2024-12-01', '2024-12-09'); 
  
  
  -- Inserting the data into the Reviewed Table
