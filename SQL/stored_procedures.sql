@@ -717,32 +717,40 @@ END //
 -- Procedure to insert the correct number of teams for a section
 -- Inputs: Professor NetID, Section Code, Number of Teams for section, @Variable for error message
 -- Outputs: Error Message: 'Success' or the condition that was not met
-CREATE PROCEDURE professor_insert_num_teams (
-	IN professor_netID char(9),
+CREATE PROCEDURE professor_insert_team_num(
 	IN section_code char(5),
-    IN num_teams INT,
+    IN team_num INT,
     OUT error_message varchar(100))
 insert_teams: BEGIN 
 	SET error_message = 'Success';
     
-	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
-		SET error_message = 'Can only enter teams for your classes';
-        LEAVE insert_teams;
-	ELSEIF num_teams < 1 THEN 
-		SET error_message = 'Number of teams must be at least 1';
+	IF EXISTS (SELECT * FROM Team WHERE SecCode = section_code AND TeamNum = team_num) THEN 
+		SET error_message = 'Team already exists';
         LEAVE insert_teams;
 	END IF;
         
-	-- For the number of teams, insert into the Teams Table
-	insertion_loop: LOOP
-		IF num_teams > 0 THEN 
-			INSERT INTO Team (SecCode)
-            VALUES (section_code);
-            SET num_teams = num_teams - 1;
-		ELSE 
-			LEAVE insertion_loop;
-		END IF;
-    END LOOP insertion_loop;
+	-- Inserting the team number into for the section 
+	INSERT INTO Team(TeamNum, SecCode)
+    VALUES(team_num, section_code);
+    
+END //
+
+-- Written by Emma Hockett, Started on November 17, 2024
+-- Procedure to check whether a team number already exists for a section 
+-- Inputs: Section Code, Team Number, @Variable for return message
+-- Outputs: Whether the team exists in that section 
+
+CREATE PROCEDURE check_if_team_exists(
+	IN section_code char(9),
+    IN team_num INT,
+    OUT error_message varchar(200))
+BEGIN
+	IF EXISTS (SELECT * FROM Team WHERE SecCode = section_code AND TeamNum = team_num) THEN 
+		SET error_message = "Team exists";
+	ELSE
+		SET error_message = "Team doesn't exist";
+	END IF;
+
 END //
 
 
