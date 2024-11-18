@@ -149,6 +149,7 @@ BEGIN
 END; //
 DELIMITER ;
 
+/*
 -- Trigger for determing the next Team Number to be used, dependent on the section
 DELIMITER //
 CREATE TRIGGER before_insert_team
@@ -166,6 +167,7 @@ BEGIN
     SET NEW.TeamNum = maxTeamNum + 1;
 END; //
 DELIMITER ;
+*/
 
 -- Trigger for the next Criteria ID number to assign, dependent on the section
 DELIMITER //
