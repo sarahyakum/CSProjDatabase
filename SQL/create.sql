@@ -46,7 +46,7 @@ ProfNetID char(9) NOT NULL,
 SecCode char(5) NOT NULL,   
 PRIMARY KEY (ProfNetID, SecCode),  
 FOREIGN KEY (ProfNetID) REFERENCES Professor(ProfNetID),  
-FOREIGN KEY (SecCode) REFERENCES Section(SecCode) 
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode) ON UPDATE CASCADE
 );  
 
 -- Attends Table: Represents the connection between students and sections
@@ -55,7 +55,7 @@ StuNetID char(9) NOT NULL,
 SecCode char(5) NOT NULL,  
 PRIMARY KEY (StuNetID, SecCode),   
 FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),  
-FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  ON UPDATE CASCADE 
 );  
 
 -- Team Table: Represents the teams for the various sections, Weak Entity of the Section Table
@@ -63,7 +63,7 @@ CREATE TABLE Team (
 TeamNum int NOT NULL,  
 SecCode char(5) NOT NULL,  
 PRIMARY KEY (TeamNum, SecCode),  
-FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  ON UPDATE CASCADE
 );  
 
 -- MemberOf Table: Represents the connection between teams and student, Dependent on Section Table
@@ -72,7 +72,7 @@ TeamNum int NOT NULL,
 SecCode char(5) NOT NULL, 
 StuNetID char(9) NOT NULL,  
 PRIMARY KEY (TeamNum, StuNetID, SecCode),  
-FOREIGN KEY (TeamNum, SecCode) REFERENCES Team(TeamNum, SecCode),  
+FOREIGN KEY (TeamNum, SecCode) REFERENCES Team(TeamNum, SecCode), 
 FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) 
 );  
 
@@ -97,7 +97,7 @@ StartDate DATE NOT NULL,
 EndDate DATE NOT NULL, 
 PRIMARY KEY (ReviewID, SecCode),   
 FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID),  
-FOREIGN KEY (SecCode) REFERENCES Section(SecCode)
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode) ON UPDATE CASCADE
 );  
 
 -- Reviewed Table: Represents the student who is being reviewed for a Peer Review, Connection between Student and Peer Review Tables
@@ -118,7 +118,7 @@ CriteriaName varchar(35) NOT NULL,
 CriteriaDescription varchar(300),  
 ReviewType char(7) NOT NULL,
 PRIMARY KEY (CriteriaID, SecCode),
-FOREIGN KEY (SecCode) REFERENCES Section(SecCode)   
+FOREIGN KEY (SecCode) REFERENCES Section(SecCode) ON UPDATE CASCADE
 );  
 
 -- Scored Table: Represents the scores that entered for a given peer review, for a given criteria, Connects Section, PeerReview, and Criteria
@@ -186,3 +186,4 @@ BEGIN
     SET NEW.CriteriaID = maxCriteriaNum + 1;
 END; //
 DELIMITER ;
+
