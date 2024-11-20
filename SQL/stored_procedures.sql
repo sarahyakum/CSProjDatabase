@@ -1058,6 +1058,71 @@ add_student: BEGIN
 
 END //
 
+
+-- Written by Emma Hockett Started on November 19, 2024
+-- Procedure to allow the professor to edit student information 
+-- Inputs: Original netid, updated netid, updated utdid, updated name, @Variable for the error message
+-- Outputs: Success or condition not met
+CREATE PROCEDURE professor_edit_student (
+	IN original_student_netid varchar(9),
+    IN updated_netid varchar(9),
+    IN updated_name varchar(30),
+    IN updated_utdid varchar(10),
+    OUT error_message varchar(200))
+edit_student: BEGIN 
+	SET error_message = 'Success';
+    
+    -- Checks that the student values being added are in the correct format for the database.
+    IF updated_netID NOT REGEXP '^[a-zA-Z]{3}[0-9]{6}$' THEN 
+		SET error_message = 'Student NetID not in correct format';
+        LEAVE edit_student;
+	ELSEIF updated_utdid NOT REGEXP '^[0-9]{10}$' THEN 
+		SET error_message = 'Student UTDID not in correct format';
+        LEAVE edit_student;
+	ELSEIF updated_netid != original_student_netid AND EXISTS (SELECT * FROM Student WHERE StuNetID = updated_netid) THEN 
+		SET error_message = 'NetID already in use';
+        LEAVE edit_student;
+	ELSEIF updated_utdid != (SELECT StuUTDID FROM Student WHERE original_student_netid = StuNetID) AND EXISTS (SELECT * FROM Student WHERE StuUTDID = updated_utdid) THEN 
+		SET error_message = 'UTDID already in use';
+        LEAVE edit_student;
+	END IF;
+    
+    UPDATE Student
+    SET StuNetID = updated_netid, StuName = updated_name, StuUTDID = updated_utdid
+    WHERE StuNetID = original_student_netid;
+
+
+END //
+
+
+-- Written by Emma Hockett, Statred November 19, 2024
+-- Procedure to allow the professor to delete a student 
+-- Inputs: student NetID, @Variable to hold the error message
+-- Outputs: Success or not
+CREATE PROCEDURE professor_delete_student (
+	IN student_netid char(9),
+    OUT error_message varchar(200))
+delete_student:BEGIN
+	SET error_message = "Not Successful";
+    
+    SET SQL_SAFE_UPDATES = 0;
+    
+    DELETE FROM Scored 
+    WHERE ReviewID IN (SELECT ReviewID FROM PeerReview WHERE ReviewerID = student_netid);
+    
+    DELETE FROM Reviewed WHERE StuNetID = student_netid;
+    DELETE FROM PeerReview WHERE ReviewerID = student_netid AND ReviewID IS NOT NULL ;
+    DELETE FROM Timeslot WHERE StuNetID = student_netid;
+    DELETE FROM MemberOf WHERE StuNetID = student_netid;
+    DELETE FROM Attends WHERE StuNetID = student_netid;
+    DELETE FROM Student WHERE StuNetID = student_netid;
+    
+    SET SQL_SAFE_UPDATES = 1;
+    SET error_message = "Success";
+
+END //
+
+
 -- Written by Emma Hockett, Started October 25, 2024
 -- Procedure to add a student to a team
 -- Inputs: Team Number, Student NetID, Section Code, @Variable for the error message
