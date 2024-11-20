@@ -955,7 +955,7 @@ END //
 CREATE PROCEDURE professor_get_sections (
     IN prof_netID char(9))
 BEGIN
-    SELECT Sec.SecCode, Sec.SecName
+    SELECT Sec.SecCode, Sec.SecName, Sec.StartDate, Sec.EndDate
     FROM Section Sec
     JOIN Teaches T ON T.SecCode = Sec.SecCode
     JOIN Professor P ON P.ProfNetID = T.ProfNetID
@@ -1246,6 +1246,68 @@ edit_timeslot:BEGIN
     WHERE StuNetID = student_netID AND TSDate = ts_date;
 
 END //
+
+
+-- Written by Emma Hockett Started on November 19, 2024
+-- Procedure to allow the professor to update information about the sections
+-- Inputs: Original Section Code, Updated name, updated code, updated start date, updated end date, @Variable for error message
+-- Outputs: Either success or the condition not met
+CREATE PROCEDURE professor_edit_section (
+	IN original_section_code varchar(5),
+    IN updated_name varchar(12),
+    IN updated_code varchar(5),
+    IN updated_start_date DATE,
+    IN updated_end_date DATE,
+    OUT error_message varchar(200))
+edit_section: BEGIN
+	SET error_message = "Success";
+    
+    IF NOT EXISTS (SELECT *  FROM Section WHERE SecCode = original_section_code) THEN 
+		SET error_message = "Original Section code does not exist";
+        LEAVE edit_section;
+	ELSEIF original_section_code != updated_code AND EXISTS (SELECT * FROM Section WHERE SecCode = updated_code) THEN 
+		SET error_message = 'Section Code already in use';
+        LEAVE edit_section;
+	ELSEIF ((SELECT SecName FROM Section WHERE SecCode = original_section_code) != updated_name) AND EXISTS (SELECT * FROM Section WHERE SecName = updated_name) THEN 
+		SET error_message = 'Section name already in use';
+        LEAVE edit_section;
+	ELSEIF updated_end_date <= updated_start_date THEN 
+		SET error_message = 'Start date must be before end date';
+        LEAVE edit_section;
+	END IF;
+    
+	UPDATE Section
+	SET SecCode = updated_code, SecName = updated_name, StartDate = updated_start_date, EndDate = updated_end_date
+	WHERE SecCode = original_section_code;
+    
+
+END //
+
+-- Written by Emma Hockett, Started on November 19, 2024
+-- Procedure to allow the professor to delete a section 
+-- Inputs: Section Code, @Variable for error message
+-- Outputs: Whether it was successful or not
+CREATE PROCEDURE professor_delete_section (
+	IN section_code varchar(5),
+    OUT error_message varchar(200))
+BEGIN
+    SET error_message = "Not successful";
+    
+    DELETE FROM Scored WHERE SecCode = section_code;
+    DELETE FROM Criteria WHERE SecCode = section_code;
+    DELETE FROM Reviewed WHERE SecCode = section_code;
+    DELETE FROM PeerReview WHERE SecCode = section_code;
+    DELETE FROM MemberOf WHERE SecCode = section_code;
+    DELETE FROM Team WHERE SecCode = section_code;
+    DELETE FROM Attends WHERE SecCode = section_code;
+    DELETE FROM Teaches WHERE SecCode = section_code;
+    DELETE FROM Section WHERE SecCode = section_code;
+    DELETE FROM Student WHERE StuNetID NOT IN (SELECT StuNetID FROM Attends);
+    
+    SET error_message = "Success";
+
+END //
+
 
 -- Written by Emma Hockett, Started November 3, 2024
 -- Procedure to return the emails of all of the student who have not inputted any time for the week
