@@ -54,7 +54,7 @@ CREATE TABLE Attends (
 StuNetID char(9) NOT NULL,  
 SecCode char(5) NOT NULL,  
 PRIMARY KEY (StuNetID, SecCode),   
-FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),  
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) ON UPDATE CASCADE,  
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode)  ON UPDATE CASCADE 
 );  
 
@@ -73,7 +73,7 @@ SecCode char(5) NOT NULL,
 StuNetID char(9) NOT NULL,  
 PRIMARY KEY (TeamNum, StuNetID, SecCode),  
 FOREIGN KEY (TeamNum, SecCode) REFERENCES Team(TeamNum, SecCode), 
-FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) 
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) ON UPDATE CASCADE
 );  
 
 -- Timeslot Table: Represents the timeslots for the student and its attributes, Weak Entity of the Student Table
@@ -84,7 +84,7 @@ TSDate date NOT NULL,
 TSDescription varchar(200) NOT NULL,  
 TSDuration varchar(5) NOT NULL,    
 PRIMARY KEY (TimeSlotID, StuNetID),  
-FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID)  
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID)  ON UPDATE CASCADE
 );  
 
 -- PeerReview Table: Represents the broad peer review entity, Weak Entity of Section
@@ -96,7 +96,7 @@ ReviewerID char(9) NOT NULL,  	-- Net ID of student who is doing the reviewing
 StartDate DATE NOT NULL,
 EndDate DATE NOT NULL, 
 PRIMARY KEY (ReviewID, SecCode),   
-FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID),  
+FOREIGN KEY (ReviewerID) REFERENCES Student(StuNetID) ON UPDATE CASCADE,  
 FOREIGN KEY (SecCode) REFERENCES Section(SecCode) ON UPDATE CASCADE
 );  
 
@@ -106,7 +106,7 @@ StuNetID char(9) NOT NULL,
 ReviewID int NOT NULL,  
 SecCode char(5) NOT NULL,
 PRIMARY KEY (StuNetID, ReviewID, SecCode),  
-FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID),  
+FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) ON UPDATE CASCADE,  
 FOREIGN KEY (ReviewID, SecCode) REFERENCES PeerReview(ReviewID, SecCode)  
 );  
 
