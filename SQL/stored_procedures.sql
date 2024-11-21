@@ -556,7 +556,7 @@ creating_peer_reviews:BEGIN
 		SET error_message = 'Peer Reviews of this type already exist';
         LEAVE creating_peer_reviews;
 	ELSEIF start_date >= end_date THEN 
-		SET error_message = 'Start date must be before the end end date';
+		SET error_message = 'Start date must be before the end date';
         LEAVE creating_peer_reviews;
 	ELSEIF EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND 
 		(start_date BETWEEN StartDate AND EndDate OR end_date BETWEEN StartDate AND EndDate
@@ -671,6 +671,74 @@ BEGIN
 END//
 
 
+-- Written by Emma Hockett, Statred on November 20, 2024
+-- Procedure to change the dates for a peer review
+-- Inputs: Section code, Review type, updated start date, updates end date, @Variable for status update
+-- Outputs: Success or the condition that was not met
+CREATE PROCEDURE edit_peer_review_dates (
+	IN section_code char(5),
+    IN review_type char(7),
+    IN start_date DATE,
+    IN end_date DATE,
+    OUT error_message varchar(200))
+edit_pr_dates:BEGIN
+	
+    IF start_date >= end_date THEN
+		SET error_message = 'Start date must be before the end end date';
+        LEAVE edit_pr_dates;
+	ELSEIF EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND ReviewType != review_type AND 
+		(start_date BETWEEN StartDate AND EndDate OR end_date BETWEEN StartDate AND EndDate
+		OR StartDate BETWEEN start_date AND end_date OR EndDate BETWEEN start_date AND end_date)) THEN 
+		SET error_message = 'Peer Reviews cannot overlap in availability';
+        LEAVE edit_pr_dates;
+	ELSEIF start_date <= (SELECT StartDate FROM Section WHERE SecCode = section_code) OR start_date >= (SELECT EndDate FROM Section WHERE SecCode = section_code) THEN 
+		SET error_message = 'Start date must be within the section time frame';
+        LEAVE edit_pr_dates;
+	ELSEIF end_date <= (SELECT StartDate FROM Section WHERE SecCode = section_code) OR end_date >= (SELECT EndDate FROM Section WHERE SecCode = section_code) THEN 
+		SET error_message = 'End Date must be within the section time frame';
+        LEAVE edit_pr_dates;
+	END IF;
+    
+    UPDATE PeerReview
+    SET StartDate = start_date, EndDate = end_date
+    WHERE SecCode = section_code AND ReviewType = review_type;
+    
+    SET error_message = 'Success';
+
+
+END //
+
+
+
+-- Written by Emma Hockett, Started on November 20, 2024
+-- Procedure to delete a type of peer reviews
+-- Inputs: Section code, Review Type, @Variable for the status message
+-- Outputs: Success or not
+CREATE PROCEDURE delete_peer_review (
+	IN section_code char(5),
+    IN review_type char(7),
+    OUT error_message varchar(200))
+delete_pr:BEGIN
+	SET error_message = 'Not Success';
+
+	SET SQL_SAFE_UPDATES = 0;
+    
+	DELETE FROM Reviewed
+	WHERE ReviewID IN (SELECT ReviewID FROM PeerReview WHERE SecCode = secCode AND ReviewType = reviewType) AND SecCode = secCode;
+
+    
+	DELETE FROM Scored
+    WHERE ReviewID IN (SELECT ReviewID FROM PeerReview WHERE SecCode = section_code AND ReviewType = review_type) AND SecCode = section_code;
+    
+    DELETE FROM PeerReview
+    WHERE SecCode = section_code AND ReviewType = review_type;
+
+	SET SQL_SAFE_UPDATES = 1;
+	SET error_message = 'Success';
+
+END//
+
+
 -- Written by Emma Hockett, Started October 17, 2024
 -- Procedure to edit the scores that a student gave to a different student
 -- Professor NetID, Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, Reiew Type, @Variable for error message
@@ -735,6 +803,31 @@ insert_teams: BEGIN
     
 END //
 
+-- Written by Emma Hockett, Started November 20, 2024
+-- Procedure to allow the professor to change the team number 
+-- Inputs: Section Code, Old Team Number, New Team Number, @Variable for status message
+-- Outputs: Success or not
+CREATE PROCEDURE professor_edit_team_num(
+	IN section_code char(5),
+    IN team_num INT,
+    IN new_team_num INT,
+    OUT error_message varchar(100))
+edit_teams: BEGIN 
+	SET error_message = 'Not Success';
+    
+    IF EXISTS (SELECT * FROM Team WHERE SecCode = section_code AND TeamNum = new_team_num) THEN 
+		SET error_message = "Team Number already in use for this section";
+        LEAVE edit_teams;
+	END IF;
+    
+	UPDATE Team
+    SET TeamNum = new_team_num
+    WHERE TeamNum = team_num;
+    
+    SET error_message = 'Success';
+    
+END //
+
 -- Written by Emma Hockett, Started on November 17, 2024
 -- Procedure to check whether a team number already exists for a section 
 -- Inputs: Section Code, Team Number, @Variable for return message
@@ -759,17 +852,13 @@ END //
 -- Inputs: Professor NetID, Section Code, Team Num, @Variable for error message
 -- Outputs: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE professor_delete_team (
-	IN professor_netID char(9),
     IN section_code char(5),
     IN team_num INT,
     OUT error_message varchar(100))
 team_deletion:BEGIN 
 	SET error_message = 'Success';
     
-	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN 
-		SET error_message = 'Can only delete from your sections';
-        LEAVE team_deletion;
-	ELSEIF (SELECT COUNT(*) FROM Team WHERE TeamNum = team_num AND SecCode = section_Code) < 1 THEN 
+	IF (SELECT COUNT(*) FROM Team WHERE TeamNum = team_num AND SecCode = section_Code) < 1 THEN 
 		SET error_message = 'Team does not exist for this section';
         LEAVE team_deletion;
 	END IF;
@@ -808,12 +897,29 @@ get_criteriaid: BEGIN
 END //
 
 
+-- Written by Emma Hockett, Started on November 20, 2024
+-- Procedure to check whether a peer review of this type exists 
+-- Inputs: Section code, review type, @Variable for status message
+-- Outputs: Whether there is a peer review that exists
+CREATE PROCEDURE check_type_in_pr (
+	IN section_code char(5),
+    IN review_type char(7),
+    OUT error_message varchar(200))
+BEGIN 
+
+	IF EXISTS (SELECT * FROM PeerReview WHERE ReviewType = review_type AND SecCode = section_code) THEN 
+		SET error_message = 'Peer Review exists';
+	else
+		SET error_message = 'Does not exist';
+	END IF;
+
+END //
+
 -- Written by Emma Hockett, October 17, 2024
 -- Procedure to edit the criteria 
 -- Input: Professor NetID, Section Code, CriteriaID, Updated Criteria Name, updated Criteria Description, Review Type, @Variable for error message
 -- Output: Error Message: 'Success' or condition that was not met
 CREATE PROCEDURE professor_edit_criteria (
-	IN professor_netID char(9),
 	IN section_code char(5), 
     IN criteria_id INT, 
     IN criteria_name varchar(35),
@@ -823,11 +929,11 @@ CREATE PROCEDURE professor_edit_criteria (
 edit_criteria: BEGIN
 	SET error_message = 'Success';
     
-	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SET error_message = 'Can only edit criteria for your section';
-        LEAVE edit_criteria;
-	ELSEIF NOT EXISTS (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND ReviewType = review_type) THEN 
+	IF NOT EXISTS (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND ReviewType = review_type) THEN 
 		SET error_message = 'Criteria either does not exist for this section or this review type';
+        LEAVE edit_criteria;
+	ELSEIF EXISTS (SELECT * FROM Criteria WHERE CriteriaID != criteria_id AND CriteriaName = criteria_name AND ReviewType = review_type) THEN 
+		SET error_message = 'Criteria with updated name already exists for this review type.';
         LEAVE edit_criteria;
 	END IF;
     
@@ -837,13 +943,14 @@ edit_criteria: BEGIN
 
 END //
 
+
+
 -- Written by Emma Hockett, Started October 17, 2024
 -- Procedure to allow a professor to delete a criteria 
 -- Inputs: Professor NetID, Section Code, Criteria Name, Rview Type, @Variable for error message
 -- Outputs: Error Message: 'Success" or condition not met
 -- Disclaimer: Cannot delete a criteria that has been used to create the Peer Reviews and Scored Table
 CREATE PROCEDURE professor_delete_criteria (
-	IN professor_netID char(9),
     IN section_code char(5),
     IN criteria_name varchar(35), 
     IN review_type char(7),
@@ -851,10 +958,7 @@ CREATE PROCEDURE professor_delete_criteria (
 criteria_deletion:BEGIN 
 	SET error_message = 'Success';
     
-	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SET error_message = 'Can only delete criteria from your section';
-        LEAVE criteria_deletion;
-    ELSEIF EXISTS (SELECT * FROM Scored WHERE CriteriaName = criteria_name AND SecCode = section_code AND ReviewType = review_type) THEN 
+    IF EXISTS (SELECT * FROM PeerReview WHERE ReviewType = review_type) THEN 
 		SET error_message = 'Criteria already being used for this review type, cannot delete';
         LEAVE criteria_deletion;
 	END IF;
@@ -870,7 +974,6 @@ END //
 -- Input: Professor NetID, Section Code, Student NetID, New Team Number, @Variable for error message
 -- Output: Error Message: 'Success' or condition not met
 CREATE PROCEDURE professor_change_student_team(
-	IN professor_netID char(9),
     IN section_code char(5),
     IN student_netID char(9),
     IN new_team INT, 
@@ -880,13 +983,10 @@ change_team:BEGIN
     SET error_message = 'Success';
     
     -- Checks whether the student is eligible to be moved to a new team
-	IF (SELECT COUNT(*) FROM Teaches WHERE ProfNetID = professor_netID AND SecCode = section_code ) < 1 THEN
-		SET error_message = 'Can only alter teams in your section';
-        LEAVE change_team;
-	ELSEIF NOT EXISTS (SELECT StuNetID FROM Attends WHERE StuNetID = student_netID AND SecCode = section_code) THEN 
+	IF NOT EXISTS (SELECT StuNetID FROM Attends WHERE StuNetID = student_netID AND SecCode = section_code) THEN 
 		SET error_message = 'Student not found in this section';
         LEAVE change_team;
-	ELSEIF NOT EXISTS (SELECT TeamNum FROM Team WHERE SecCode = section_code AND TeamNum = team_num) THEN 
+	ELSEIF NOT EXISTS (SELECT TeamNum FROM Team WHERE SecCode = section_code AND TeamNum = new_team) THEN 
 		SET error_message = 'New team does not exist';
         LEAVE change_team;
 	END IF;
@@ -1149,6 +1249,48 @@ add_to_team:BEGIN
     
     INSERT INTO MemberOf (TeamNum, StuNetID, SecCode) 
     VALUES (team_num, student_netID, section_code);
+
+END //
+
+-- Written by Emma Hockett, Started on November 20, 2024
+-- Procedure to remove a student from a team
+-- Inputs: Student NetID, @Variable for error message
+-- Outputs: Success or what condition was not met
+CREATE PROCEDURE professor_remove_student_team (
+	IN student_netID char(9),
+    OUT error_message varchar(200))
+remove_student_team:BEGIN
+	SET error_message = "Not Success";
+    
+    IF EXISTS (SELECT * FROM PeerReview WHERE ReviewerID = student_netid) THEN 
+		SET error_message = "Cannot remove a student from a team once a Peer Review has been created";
+		LEAVE remove_student_team;
+	END IF;
+    
+    DELETE FROM MemberOf
+    WHERE StuNetID = student_netid;
+
+	SET error_message = "Success";
+
+END //
+
+
+-- Written by Emma Hockett, Started on November 20, 2024
+-- Procedure to check whether a peer review has already been created with the team in question 
+-- Inputs: Team Number, Section, @Variable to hold response 
+-- Outputs: Whether a peer review exists or not
+CREATE PROCEDURE check_peer_review_exists (
+	IN team_num int,
+    IN section_code char(5),
+    OUT error_message varchar(200))
+cpre: BEGIN
+	
+    IF (SELECT StuNetID FROM MemberOf WHERE SecCode = section_code) IN (SELECT ReviewerID FROM PeerReview WHERE SecCode = section_code) THEN 
+		SET error_message = "Peer Reviews have already been created";
+        LEAVE cpre;
+	END IF;
+    
+    SET error_message = "No peer reviews exist";
 
 END //
 
