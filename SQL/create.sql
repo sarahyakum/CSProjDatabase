@@ -72,7 +72,7 @@ TeamNum int NOT NULL,
 SecCode char(5) NOT NULL, 
 StuNetID char(9) NOT NULL,  
 PRIMARY KEY (TeamNum, StuNetID, SecCode),  
-FOREIGN KEY (TeamNum, SecCode) REFERENCES Team(TeamNum, SecCode), 
+FOREIGN KEY (TeamNum, SecCode) REFERENCES Team(TeamNum, SecCode) ON UPDATE CASCADE, 
 FOREIGN KEY (StuNetID) REFERENCES Student(StuNetID) ON UPDATE CASCADE
 );  
 
@@ -186,4 +186,3 @@ BEGIN
     SET NEW.CriteriaID = maxCriteriaNum + 1;
 END; //
 DELIMITER ;
-
