@@ -41,7 +41,7 @@
       - *Outputs:* Message: either 'Success' or condition that was not met
   
   - **student_insert_score** : Inserts the score for a peer review that a student gave
-      - *Inputs:* Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, Score, @Variable to hold status/ error message 
+      - *Inputs:* Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, Review Type, Score, @Variable to hold status/ error message 
       - *Outputs:* Message: either 'Success' or condition that was not met
 
   - **student_get_peer_review_criteria** : Retrieves the peer review criteria for a particular student and section (given the review type)

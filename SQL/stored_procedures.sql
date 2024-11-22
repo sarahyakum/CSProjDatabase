@@ -313,27 +313,25 @@ END //
 
 -- Written by Emma Hockett, Started October 17, 2024
 -- Procedure to insert a student score for another student 
--- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, New Score, @Variable to get the error message
+-- Input: Section Code, Reviewer NetID, Reviewee NetID, Criteria Name, Review Type, New Score, @Variable to get the error message
 -- Output: Error Message: 'Success' or the condition that was not met
 CREATE PROCEDURE student_insert_score (
 	IN section_code char(5),
 	IN reviewer_netID char(9),
     IN reviewee_netID char(9),
     IN criteria_name varchar(35),
+    IN review_type char(7),
     IN updated_score INT,
     OUT error_message varchar(100))
 inserting_score: BEGIN
 	DECLARE review_id INT DEFAULT 0;
     DECLARE criteria_id INT DEFAULT 0;
-    DECLARE review_type char(7);
     SET error_message = 'Success';
     
     SET review_id = (SELECT pr.ReviewID FROM PeerReview pr JOIN Reviewed r
 		ON pr.ReviewID = r.ReviewID AND pr.SecCode = r.SecCode
-		WHERE pr.SecCode = section_code AND pr.ReviewerID = reviewer_netID AND r.StuNetID = reviewee_netID ); 
-        
-	SET review_type = (SELECT ReviewType FROM PeerReview WHERE ReviewID = review_id);
-	
+		WHERE pr.SecCode = section_code AND pr.ReviewerID = reviewer_netID AND r.StuNetID = reviewee_netID AND pr.ReviewType = review_type); 
+        	
     SET criteria_id = (SELECT CriteriaID FROM Criteria WHERE SecCode = section_code AND CriteriaName = criteria_name AND ReviewType = review_type);
     
     -- Checks that the Review and Criteria exists, and that the score must be between 0 and 5 and not NULL
@@ -343,7 +341,7 @@ inserting_score: BEGIN
     ELSEIF (review_ID IS NULL) THEN 
 		SET error_message = 'Review does not exist';
         LEAVE inserting_score;
-	ELSEIF updates_score = NULL THEN 
+	ELSEIF updated_score = NULL THEN 
 		SET error_message = 'Score must have a value between 0 and 5';
         LEAVE inserting_score;
     ELSEIF (updated_score > 5) OR (updated_score < 0) THEN 
