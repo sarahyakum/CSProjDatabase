@@ -1148,6 +1148,12 @@ add_student: BEGIN
 	ELSEIF NOT EXISTS (SELECT * FROM Section WHERE SecCode = section_code) THEN 
 		SET error_message = 'Section does not exist';
         LEAVE add_student;
+	ELSEIF student_UTDID IN (SELECT StuUTDID FROM Student) THEN 
+		SET error_message = 'UTDID already in use';
+        LEAVE add_student;
+	ELSEIF student_netid IN (SELECT StuNetID FROM Student) THEN 
+		SET error_message = 'NetID already in use';
+        LEAVE add_student;
 	END IF;
     
     INSERT INTO Student (StuNetID, StuUTDID, StuName, StuPassword)
@@ -1522,16 +1528,8 @@ END //
 -- Outputs: Emails for all of the students who have not put timeslots in for the current week
 CREATE PROCEDURE timetrack_student_emails (
 	IN section_code char(5),
-    IN start_week DATE,
-    OUT error_message varchar(100))
+    IN start_week DATE)
 tt_emails:BEGIN
-	
-    IF NOT EXISTS (SELECT * FROM Attends WHERE SecCode = section_code) THEN 
-		SET error_message = 'No student for this section';
-        LEAVE tt_emails;
-	END IF;
-    
-    
     -- Creates the emails of the students who have not entered any time from the given date to the current date
 	SELECT CONCAT(s.StuNetID, '@utdallas.edu') AS Email
     FROM Student s
@@ -1550,15 +1548,9 @@ END //
 -- Inputs: Section Code
 -- Outputs: Emails of those who have not completed them 
 CREATE PROCEDURE peerReview_student_emails (
-	IN section_code char(5),
-    OUT error_message varchar(100))
+	IN section_code char(5))
 pr_emails: BEGIN
 	DECLARE review_type char(7);
-    
-	IF NOT EXISTS (SELECT 1 FROM PeerReview WHERE SecCode = section_code AND CURDATE() BETWEEN StartDate AND EndDate) THEN
-		SET error_message = 'No Peer Reviews currently available';
-        LEAVE pr_emails;
-	END IF;
     
     SELECT ReviewType INTO review_type FROM PeerReview WHERE SecCode = section_code AND CURDATE() BETWEEN StartDate AND EndDate LIMIT 1;
     
