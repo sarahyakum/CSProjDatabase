@@ -1064,11 +1064,11 @@ END //
 -- Written by Darya Anbar, Started October 24, 2024
 -- Procedure to get all students in a given section
 -- Input: Section Code
--- Output: Student NetIDs
+-- Output: Student Names and NetIDs
 CREATE PROCEDURE get_section_students (
 	IN section_code char(5))
 BEGIN
-	SELECT S.StuNetID 
+	SELECT S.StuName, S.StuNetID 
 	FROM Student S, Attends A
 	WHERE A.SecCode = section_code AND S.StuNetID = A.StuNetID;
 END //
