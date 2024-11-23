@@ -1112,7 +1112,7 @@ CREATE PROCEDURE check_peer_review_availability (
 pr_availability:BEGIN 
     SET error_message = 'Available';
     
-    IF NOT EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate)) THEN 
+    IF NOT EXISTS (SELECT * FROM PeerReview WHERE ReviewerID = student_netID AND SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate)) THEN 
 		SET error_message = 'Unavailable';
         LEAVE pr_availability;
 	ELSEIF NOT EXISTS (SELECT * FROM PeerReview PR JOIN Scored S ON PR.ReviewID = S.ReviewID AND PR.SecCode = S.SecCode 
