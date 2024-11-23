@@ -1116,7 +1116,7 @@ pr_availability:BEGIN
 		SET error_message = 'Unavailable';
         LEAVE pr_availability;
 	ELSEIF NOT EXISTS (SELECT * FROM PeerReview PR JOIN Scored S ON PR.ReviewID = S.ReviewID AND PR.SecCode = S.SecCode 
-		WHERE PR.ReviewerID = student_netID AND SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) AND S.Score is NULL) THEN 
+		WHERE PR.ReviewerID = student_netID AND S.SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) AND S.Score is NULL) THEN 
 		SET error_message = 'Completed';
         LEAVE pr_availability;
 	END IF;
