@@ -1100,6 +1100,8 @@ num_in_team:BEGIN
 
 END // 
 
+-- Written by Emma Hockett, Started October 25, 2024
+-- Updated by Darya Anbar with appropriate logic and error messages, November 22, 2024
 -- Procedure to check whether there is a peer review for the section that is currently available (Emma)
 -- Inputs: Section Code, @Variable for the message
 -- Outputs: Message: 'Peer Review Available' or reason why not available
@@ -1108,15 +1110,14 @@ CREATE PROCEDURE check_peer_review_availability (
 	IN section_code char(5),
     OUT error_message varchar(100))
 pr_availability:BEGIN 
-    DECLARE isAvailable BOOL;
-    SET error_message = 'Peer Review Available';
+    SET error_message = 'Available';
     
     IF NOT EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate)) THEN 
-		SET error_message = 'No peer reviews are currently available.';
+		SET error_message = 'Unavailable';
         LEAVE pr_availability;
 	ELSEIF NOT EXISTS (SELECT * FROM PeerReview PR JOIN Scored S ON PR.ReviewID = S.ReviewID AND PR.SecCode = S.SecCode 
-		WHERE PR.ReviewerID = student_netID AND SecCode = section_code AND S.Score is NULL) THEN 
-		SET error_message = 'Already completed current peer reviews. To make changes email the professor in charge of this section.';
+		WHERE PR.ReviewerID = student_netID AND SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) AND S.Score is NULL) THEN 
+		SET error_message = 'Completed';
         LEAVE pr_availability;
 	END IF;
         
