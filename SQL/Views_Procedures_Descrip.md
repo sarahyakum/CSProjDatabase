@@ -8,6 +8,7 @@
 
   - **student_team_and_section** : Creates view for the team number and section code of all students in the system
 
+  - **student_team_and_section** : Creates view for all peer review scores that all students received (for each section and review type)
 
 ## Professor 
 

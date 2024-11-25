@@ -51,3 +51,11 @@ JOIN Scored Sc ON Sc.ReviewID = PR.ReviewID
 JOIN Criteria C ON C.CriteriaID = Sc.CriteriaID
 JOIN MemberOf M ON M.StuNetID = S.StuNetID;
 
+
+-- View for all scores that all students received in all sections
+-- Used in these procedures: student_view_averages
+CREATE VIEW student_scores_received AS
+SELECT R.StuNetID, R.SecCode, C.CriteriaName, C.ReviewType, S.Score
+FROM Reviewed R 
+JOIN Scored S ON S.ReviewID = R.ReviewID
+JOIN Criteria C ON C.CriteriaID = S.CriteriaID
