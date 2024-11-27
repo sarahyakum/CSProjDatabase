@@ -61,9 +61,9 @@
       - *Inputs:* Student NetID, Section Code, @Variable for number in team, @Variable for status message
       - *Outputs:* Message: 'Success' or the condition not met, Number in Team: 0 if not found, or number in team
    
-  - **check_peer_review_availability** : Allows the student to check whether there is currently a peer review that is available
-      - *Inputs:* Section Code, @Variable for message
-      - *Outputs:* Message: 'Success' or reason not available
+  - **check_peer_review_availability** : Checks whether there is currently a peer review that is available for a student and section
+      - *Inputs:* Student NetID, Section Code
+      - *Outputs:* 'Unavailable' or if available, the review type
    
   - **get_section_timeframe** : Allows the student side to grab the timeframe for the semester
       - *Inputs:* Section Code
@@ -72,6 +72,11 @@
   - **student_peer_review_page** : Checks what the peer review page should show for the student
       - *Inputs:* Student NetID, Section Code, @Variable for the message
       - *Outputs:* 'Peer Review needs to be completed', 'Peer Reviews completed, waiting until the end of the review session to view average scores''Average scores for the last review type: (review type)'
+
+  - **check_scores_availability** : Checks whether there are currently peer review scores available for a student and section
+      - *Inputs:* Student NetID, Section Code
+      - *Outputs:* 'Unavailable' or if available, the review type of the most recent peer review
+  
   
 ## General
 

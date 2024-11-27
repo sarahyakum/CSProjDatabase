@@ -1102,22 +1102,27 @@ END //
 
 -- Written by Emma Hockett, Started October 25, 2024
 -- Updated by Darya Anbar with appropriate logic and error messages, November 22, 2024
--- Procedure to check whether there is a peer review for the section that is currently available (Emma)
--- Inputs: Section Code, @Variable for the message
--- Outputs: Message: 'Peer Review Available' or reason why not available
+-- Procedure to check whether there is a peer review for the section that is currently available
+-- Inputs: Student NetID, Section Code
+-- Outputs: 'Unavailable' or if available, the review type
 CREATE PROCEDURE check_peer_review_availability (
 	IN student_netID char(9),
 	IN section_code char(5),
     OUT error_message varchar(100))
 pr_availability:BEGIN 
-    SET error_message = 'Available';
+    DECLARE review_type char(7);
+	SET error_message = 'Unavailable';
     
-    IF NOT EXISTS (SELECT * FROM PeerReview WHERE ReviewerID = student_netID AND SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate)) THEN 
-		SET error_message = 'Unavailable';
-        LEAVE pr_availability;
-	ELSEIF NOT EXISTS (SELECT * FROM PeerReview PR JOIN Scored S ON PR.ReviewID = S.ReviewID AND PR.SecCode = S.SecCode 
+	IF NOT EXISTS (SELECT * FROM PeerReview PR JOIN Scored S ON PR.ReviewID = S.ReviewID AND PR.SecCode = S.SecCode 
 		WHERE PR.ReviewerID = student_netID AND S.SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) AND S.Score is NULL) THEN 
 		SET error_message = 'Completed';
+        LEAVE pr_availability;
+	END IF;
+    
+	SELECT ReviewType INTO review_type FROM PeerReview WHERE ReviewerID = student_netID AND SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) LIMIT 1;
+	
+    IF review_type IS NOT NULL THEN
+		SET error_message = review_type;
         LEAVE pr_availability;
 	END IF;
         
@@ -1558,6 +1563,50 @@ pr_emails: BEGIN
     FROM PeerReview Pr
     JOIN Scored Sc ON Sc.ReviewID = Pr.ReviewID
     WHERE Pr.SecCode = section_code AND Pr.ReviewType = review_type AND Sc.Score IS NULL;
+
+END //
+
+
+-- Written by Darya Anbar, Started November 26, 2024
+-- Procedure to check if peer review scores are avaiable for a section
+-- Inputs: Student NetID, Section Code
+-- Outputs: 'Unavailable' or if available, the review type of the most recent peer review
+CREATE PROCEDURE check_scores_availability (
+    IN student_netID CHAR(9),
+    IN section_code CHAR(5),
+    OUT error_message VARCHAR(100))
+scores_availability:BEGIN
+	DECLARE section_start_date DATE;
+    DECLARE section_end_date DATE;
+    DECLARE current_review_start DATE;
+    DECLARE current_review_end DATE;
+    DECLARE review_type char(7);
+
+    SET error_message = 'Unavailable';
+
+    -- Gets section start and end date
+    SELECT StartDate, EndDate INTO section_start_date, section_end_date FROM Section WHERE SecCode = section_code;
+
+    IF CURDATE() > section_end_date or CURDATE() < section_start_date THEN
+        LEAVE scores_availability;
+    END IF;
+    
+    -- Checks if there's a current review window
+	IF EXISTS (SELECT * FROM PeerReview WHERE ReviewerID = student_netID AND SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) LIMIT 1) THEN
+        LEAVE scores_availability;
+	END IF;
+    
+    -- No reviews yet
+    IF NOT EXISTS (SELECT * FROM PeerReview WHERE SecCode = section_code AND CURDATE() > EndDate) THEN
+		LEAVE scores_availability;
+	END IF;
+    
+    -- Gets most recent review type
+    SELECT ReviewType INTO review_type FROM PeerReview WHERE SecCode = section_code AND CURDATE() > EndDate ORDER BY EndDate DESC LIMIT 1;
+	IF review_type IS NOT NULL THEN
+		SET error_message = review_type;
+        LEAVE scores_availability;
+    END IF;
 
 END //
 
