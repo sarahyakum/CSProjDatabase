@@ -165,10 +165,10 @@ edit_timeslot:BEGIN
     ELSEIF (updated_duration NOT REGEXP '^(2[0-3]|[01][0-9]):([0-5][0-9])$') THEN 
 		SET error_message = 'Durations must be in the form HH:MM and cannot 24 or more hours or more than 60 minutes.';
         LEAVE edit_timeslot;
-	ELSEIF (TIME_TO_SEC(STR_TO_DATE(ts_duration, '%H:%i')) < TIME_TO_SEC('00:15')) THEN
+	ELSEIF (TIME_TO_SEC(STR_TO_DATE(updated_duration, '%H:%i')) < TIME_TO_SEC('00:15')) THEN
         SET error_message = 'Duration must be at least 15 minutes';
         LEAVE edit_timeslot;
-    ELSEIF (MINUTE(STR_TO_DATE(ts_duration, '%H:%i')) NOT IN (0, 15, 30, 45)) THEN
+    ELSEIF (MINUTE(STR_TO_DATE(updated_duration, '%H:%i')) NOT IN (0, 15, 30, 45)) THEN
         SET error_message = 'Duration must be rounded to the nearest 15 minutes';
         LEAVE edit_timeslot;
     END IF;
