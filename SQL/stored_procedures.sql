@@ -1112,6 +1112,10 @@ CREATE PROCEDURE check_peer_review_availability (
 pr_availability:BEGIN 
     DECLARE review_type char(7);
 	SET error_message = 'Unavailable';
+
+    IF NOT EXISTS (SELECT * FROM PeerReview PR WHERE PR.ReviewerID = student_netID AND SecCode = section_code) THEN
+		LEAVE pr_availability;
+	END IF;
     
 	IF NOT EXISTS (SELECT * FROM PeerReview PR JOIN Scored S ON PR.ReviewID = S.ReviewID AND PR.SecCode = S.SecCode 
 		WHERE PR.ReviewerID = student_netID AND S.SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) AND S.Score is NULL) THEN 
@@ -1591,6 +1595,11 @@ scores_availability:BEGIN
         LEAVE scores_availability;
     END IF;
     
+    -- Check that peer reviews exist for this student
+    IF NOT EXISTS (SELECT * FROM PeerReview PR WHERE PR.ReviewerID = student_netID AND SecCode = section_code) THEN
+		LEAVE pr_availability;
+	END IF;
+
     -- Checks if there's a current review window
 	IF EXISTS (SELECT * FROM PeerReview WHERE ReviewerID = student_netID AND SecCode = section_code AND (CURDATE() BETWEEN StartDate AND EndDate) LIMIT 1) THEN
         LEAVE scores_availability;
