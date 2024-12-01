@@ -113,7 +113,7 @@ inserting_timeslot:BEGIN
     ELSEIF (LENGTH(ts_description) < 30) THEN
 		SET error_message = 'Description must be at least 30 characters';
         LEAVE inserting_timeslot;
-    ELSEIF (ts_date <= NOW() - INTERVAL 3 DAY) THEN
+    ELSEIF (DATE(ts_date) < CURRENT_DATE - INTERVAL 3 DAY) THEN
 		SET error_message = 'Can only insert timeslots within the past 3 days';
         LEAVE inserting_timeslot;
     ELSEIF (ts_date > NOW()) THEN
@@ -159,7 +159,7 @@ edit_timeslot:BEGIN
     ELSEIF (LENGTH(updated_description) < 30) THEN
 		SET error_message = 'Description must be at least 30 characters';
         LEAVE edit_timeslot;
-    ELSEIF (ts_date <= NOW() - INTERVAL 3 DAY) THEN
+    ELSEIF (DATE(ts_date) < CURRENT_DATE - INTERVAL 3 DAY) THEN
 		SET error_message = 'Can only edit timeslots within the past 3 days';
         LEAVE edit_timeslot;
     ELSEIF (updated_duration NOT REGEXP '^(2[0-3]|[01][0-9]):([0-5][0-9])$') THEN 
